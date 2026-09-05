@@ -6,10 +6,11 @@
 
 **Два ядра. Один нативный VPN-клиент.**
 
-Минималистичный интерфейс для Linux · Xray + sing-box · Mihomo
+Минималистичный интерфейс · Linux · Windows 11 Preview · Xray + sing-box · Mihomo
 
 [![Последний релиз](https://img.shields.io/github/v/release/wasteprince/nory?color=8c949f&label=release)](https://github.com/wasteprince/nory/releases/latest)
 [![Linux](https://img.shields.io/badge/Linux-x86__64-343039)](https://github.com/wasteprince/nory/releases/latest)
+[![Windows 11 Preview](https://img.shields.io/badge/Windows_11-Preview-343039)](https://github.com/wasteprince/nory/releases/tag/v0.2.29)
 [![Telegram](https://img.shields.io/badge/Telegram-канал_разработчика-8c949f)](https://t.me/linuxset)
 
 [Скачать](https://github.com/wasteprince/nory/releases/latest) · [Сообщить об ошибке](https://github.com/wasteprince/nory/issues) · [TG канал разработчика](https://t.me/linuxset)
@@ -18,7 +19,19 @@
 
 ![Интерфейс NORY: подключение, подписка и карточки серверов](docs/previews/home.png)
 
-## Новое в 0.2.28
+## Windows 11 — предварительная сборка 0.2.29
+
+[Скачать Windows-установщик](https://github.com/wasteprince/nory/releases/tag/v0.2.29) · [Особенности и ограничения](WINDOWS.md)
+
+Нативный Rust-клиент, два TUN-режима, системная служба, встроенные ядра,
+Wintun и библиотеки интерфейса. **251 флаг встроен в `.exe` только для Windows**;
+в Linux остаются системные флаги и глобус. Поддерживается только Windows 11 x64.
+
+Проверены сборка, установка, запуск интерфейсных компонентов и связь со службой
+в Wine. Реальный TUN/WFP и обход приложений на Windows 11 ещё требуют проверки.
+Это Preview, а стабильный Linux-релиз остаётся **0.2.28**.
+
+## Linux: новое в 0.2.28
 
 Исправлена ошибка подключения Mihomo для серверов с запятыми в названиях,
 например `[№1, HYSTERIA] 🇸🇪 Швеция`. Имена серверов и балансировщиков сохраняются,
@@ -48,7 +61,7 @@ NORY — нативное приложение на Rust и GTK4 / libadwaita, �
 | Arch Linux, x86_64 | `nory-…-x86_64.pkg.tar.zst` | `sudo pacman -U ./nory-0.2.28-1-x86_64.pkg.tar.zst` |
 | Debian-подобные, amd64 | `nory_…_amd64.deb` | `sudo apt install ./nory_0.2.28_amd64.deb` |
 
-Нужны systemd, GTK4 и libadwaita. Пакет `.deb` не означает совместимость со всеми старыми выпусками Debian/Ubuntu: доступные версии системных библиотек должны соответствовать сборке. Пакетов Windows и macOS в этом релизе нет.
+Для Linux нужны systemd, GTK4 и libadwaita. Пакет `.deb` не означает совместимость со всеми старыми выпусками Debian/Ubuntu: доступные версии системных библиотек должны соответствовать сборке. Windows-установщик доступен отдельно в [Preview 0.2.29](https://github.com/wasteprince/nory/releases/tag/v0.2.29); macOS-сборки нет.
 
 ## Переход на GitHub
 
