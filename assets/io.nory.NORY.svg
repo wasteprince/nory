@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-  <defs>
-    <linearGradient id="background" x1="28" y1="22" x2="226" y2="238" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#f2a4ba"/>
-      <stop offset="1" stop-color="#cf718e"/>
-    </linearGradient>
-  </defs>
-  <rect x="8" y="8" width="240" height="240" rx="58" fill="url(#background)"/>
-  <path d="M69 181V75h27l64 68V75h27v106h-27l-64-68v68H69Z" fill="#2b1c22"/>
+  <rect x="12" y="12" width="232" height="232" rx="56" fill="#c8cbd1"/>
+  <!-- A single continuous N. The rounded joins stay legible at tray sizes. -->
+  <path d="M80 176V80l96 96V80" fill="none" stroke="#25292f"
+        stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
