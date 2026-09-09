@@ -1,0 +1,176 @@
+/* NORY: quiet surfaces, one accent, native controls. */
+@define-color accent_color #afb1b4;
+@define-color accent_bg_color #afb1b4;
+@define-color accent_fg_color #1e2023;
+@define-color window_bg_color #191b1e;
+@define-color window_fg_color #eef0f3;
+@define-color view_bg_color #202225;
+@define-color view_fg_color #eef0f3;
+
+window, .content-root { background: #121416; color: #e6e8ec; }
+.content-root { background: #14171c; }
+.home-page-scroll { background: transparent; }
+headerbar { background: #1a1c1f; border: 0; box-shadow: none; }
+label { font-size: 14px; font-weight: 400; }
+button, entry, dropdown, spinbutton { border-radius: 10px; box-shadow: none; }
+button, entry, searchentry, spinbutton, switch {
+  transition: background-color 180ms ease-out, border-color 180ms ease-out, color 180ms ease-out;
+}
+button:disabled { opacity: .42; }
+button:focus-visible, entry:focus-within, spinbutton:focus-within, dropdown:focus-visible {
+  outline: 2px solid @accent_color; outline-offset: 2px;
+}
+entry, searchentry, spinbutton { background: #272a2e; color: @window_fg_color; border: 1px solid rgba(230, 235, 242, .09); }
+entry, searchentry { min-height: 36px; padding: 0 10px; }
+entry:hover, searchentry:hover, spinbutton:hover { border-color: #515356; }
+/* Reset every native track node, not just the thumb. Some GTK themes otherwise
+   leave a wide opaque frame even when the slider itself is only a few pixels. */
+.nory-scroll { background: transparent; border: 0; box-shadow: none; }
+.nory-scroll > scrollbar,
+.nory-scroll > scrollbar range,
+.nory-scroll > scrollbar trough {
+  background: transparent; background-image: none; border: 0; box-shadow: none;
+  padding: 0; margin: 0; min-width: 0; min-height: 0;
+}
+.nory-scroll > scrollbar.vertical { min-width: 10px; margin: 4px 0 4px 6px; }
+.nory-scroll > scrollbar.horizontal { min-height: 10px; margin: 6px 4px 0; }
+.nory-scroll > scrollbar slider {
+  background: rgba(179, 187, 198, .28); background-image: none;
+  border: 0; box-shadow: none; border-radius: 99px; padding: 0;
+  opacity: 0; transition: opacity 180ms ease-out, background-color 160ms ease-out;
+}
+.nory-scroll > scrollbar.vertical slider { min-width: 4px; min-height: 36px; margin: 0 3px; }
+.nory-scroll > scrollbar.horizontal slider { min-height: 4px; min-width: 36px; margin: 3px 0; }
+.nory-scroll.scroll-active > scrollbar slider,
+.nory-scroll > scrollbar:focus-within slider { opacity: 1; }
+.nory-scroll > scrollbar:hover slider { opacity: 1; background: rgba(193, 201, 212, .55); }
+.nory-scroll > scrollbar slider:active { opacity: 1; background: rgba(215, 221, 231, .8); }
+.nory-scroll > overshoot, .nory-scroll > undershoot {
+  background: transparent; background-image: none; border: 0; box-shadow: none;
+}
+switch { background: #45474a; border: 0; box-shadow: none; }
+switch:checked { background: @accent_bg_color; }
+switch slider { background: #eef0f3; border: 0; box-shadow: none; }
+
+.navigation-footer { background: transparent; padding: 8px 12px 10px; }
+.bottom-nav { background: rgba(37, 41, 47, .97); background-image: linear-gradient(180deg, rgba(235, 241, 255, .025), transparent); border: 1px solid rgba(230, 235, 242, .12); border-radius: 28px; padding: 4px; }
+.nav-button { background: transparent; color: #a8b3c2; border: 0; min-width: 90px; min-height: 40px; border-radius: 22px; padding: 0 12px; }
+.nav-button:hover { background: #313336; color: #eef0f3; }
+.nav-button:checked { background: #363c45; color: #f3f6fa; }
+.nav-button:active { background: #3d3f42; }
+.nav-label { font-size: 13px; font-weight: 500; }
+
+.home-shell { padding: 10px 22px 16px; }
+.home-topbar { padding: 10px 12px; margin-bottom: 4px; background: rgba(30, 34, 40, .88); border: 1px solid rgba(230, 235, 242, .08); border-radius: 14px; }
+.home-title { font-size: 18px; font-weight: 600; letter-spacing: .7px; }
+.home-brand-icon { min-width: 24px; min-height: 24px; }
+.mode-picker { min-width: 156px; }
+.mode-picker > button { min-height: 36px; background: #25282c; border: 1px solid rgba(230, 235, 242, .1); padding: 0 12px; }
+.power { min-width: 104px; min-height: 104px; padding: 0; border-radius: 999px; background: #2b2f34; background-image: linear-gradient(155deg, rgba(220, 229, 243, .065), transparent); color: #e1e6ee; border: 1px solid #59636f; box-shadow: none; }
+.power:hover { background: #2e3033; border-color: #afb1b4; }
+.power:active { background: #424447; }
+.power.connected { background: #22342c; color: #91d4aa; border-color: #527b61; }
+.power.connected:hover { background: #2b4235; border-color: #91d4aa; }
+.power.connected:active { background: #365a43; }
+.power-glyph { background: transparent; border: 0; box-shadow: none; }
+.connection-state, .hero-title { font-size: 17px; font-weight: 600; }
+.connection-time { color: #b4bcc8; font-size: 14px; font-variant-numeric: tabular-nums; }
+.connection-detail { color: #a9b2bf; font-size: 13px; }
+.stat-value { font-size: 23px; font-weight: 500; font-variant-numeric: tabular-nums; }
+
+.subscription-panel { background: rgba(32, 36, 42, .96); border: 1px solid rgba(230, 235, 242, .10); border-radius: 14px; }
+.server-control { padding: 5px 8px; border-spacing: 6px; }
+.server-switcher { background: transparent; border: 0; border-radius: 10px; min-height: 44px; padding: 0; }
+.server-drawer-toggle { background: transparent; color: #edf0f5; border: 0; border-radius: 8px; min-height: 44px; padding: 0 8px; }
+.server-drawer-toggle:hover { background: #2d2f32; }
+.server-drawer-toggle:active { background: #343639; }
+.selected-server { font-size: 14px; font-weight: 600; }
+.selected-marker { min-width: 26px; min-height: 24px; }
+.drawer-chevron { color: #a2a4a7; }
+.country-flag-emoji { font-family: "Noto Color Emoji", "Twemoji Mozilla", sans-serif; font-size: 21px; }
+.system-globe-emoji { font-family: "Noto Color Emoji", "Twemoji Mozilla", sans-serif; font-size: 19px; }
+.country-flag-frame { min-width: 28px; min-height: 19px; }
+.server-drawer { background: transparent; border: 0; padding: 0; }
+.server-grid, .server-grid > flowboxchild { background: transparent; padding: 0; margin: 0; border: 0; }
+.server-card { background: rgba(35, 39, 45, .96); padding: 10px; border: 1px solid rgba(230, 235, 242, .10); border-radius: 14px; }
+.server-card:hover { background: #2b3036; border-color: rgba(230, 235, 242, .24); }
+.server-card:active { background: #373e47; }
+.server-card.selected { background: #303741; background-image: linear-gradient(135deg, rgba(224, 233, 251, .045), transparent); border-color: #8895a5; }
+.server-card.selected:hover { background: #363e49; }
+.server-empty { background: #23272c; padding: 18px; border: 1px solid rgba(230, 235, 242, .09); border-radius: 14px; }
+.server-name { font-size: 14px; font-weight: 600; min-height: 34px; }
+.server-badge { background: transparent; min-width: 26px; min-height: 24px; color: #a8aaad; }
+.server-description { font-size: 12px; color: #b4becc; min-height: 16px; }
+.server-protocol { font-size: 12px; color: #a0abba; }
+.server-latency { font-size: 12px; color: #bdc6d3; font-variant-numeric: tabular-nums; }
+.subscription-summary { background: transparent; padding: 0 14px 11px; margin: 0; border: 0; }
+.subscription-notice { font-size: 13px; color: #a6b1bf; padding-top: 4px; }
+button.subscription-tool { min-width: 36px; min-height: 36px; padding: 0; border-radius: 999px; }
+button.icon-button.subscription-switch { background: transparent; color: #a7a9ac; border: 0; min-width: 30px; min-height: 36px; border-radius: 6px; }
+button.icon-button.subscription-switch:hover { background: transparent; color: #c5c7ca; }
+button.icon-button.subscription-switch:active { color: #ffffff; }
+
+.page { padding: 14px 22px 10px; }
+.page-heading { padding-bottom: 8px; }
+.page-title { font-size: 24px; font-weight: 600; }
+.muted { color: #abb4c1; font-size: 13px; }
+.card { background: #22262b; border: 1px solid rgba(230, 235, 242, .08); border-radius: 14px; padding: 14px; }
+.list-card { background: transparent; border: 0; border-radius: 10px; }
+.settings-row { background: #23272c; border: 1px solid rgba(230, 235, 242, .07); border-radius: 12px; padding: 10px 12px; min-height: 34px; }
+.settings-title { font-size: 14px; font-weight: 500; }
+.section-title { font-size: 15px; font-weight: 600; margin: 5px 0 4px; }
+.details-section > title { background: #23272c; border: 1px solid rgba(230, 235, 242, .08); border-radius: 12px; padding: 12px; color: #c1cbd8; }
+.details-section > title:hover { color: #bec0c3; }
+.settings-tabs { background: rgba(29, 33, 39, .94); border: 1px solid rgba(230, 235, 242, .07); border-radius: 12px; padding: 3px; margin-bottom: 6px; }
+.settings-tabs button { background: transparent; color: #a7a9ac; border: 1px solid transparent; border-radius: 9px; min-height: 34px; padding: 0 12px; }
+.settings-tabs button:checked { background: #343b45; color: #e4e7ec; border-color: rgba(230, 235, 242, .10); }
+.settings-tabs button:hover { background: #2a2f37; }
+.settings-tabs button:checked:hover { background: #3b4350; }
+.settings-entry { min-height: 38px; }
+.settings-row > entry, .settings-row > spinbutton, .settings-row > dropdown { min-width: 196px; }
+.server-row { background: #242930; border: 1px solid #343d48; padding: 12px; border-radius: 10px; margin: 4px 0; }
+.server-row:hover, .process-picker-row:hover { background: #2c2e31; }
+.server-row.selected { background: #2c2e31; }
+.toolbar-button, .icon-button { background: #2c3138; color: #dfe6ef; border: 1px solid rgba(230, 235, 242, .13); min-height: 38px; padding: 0 12px; }
+.icon-button { min-width: 34px; padding: 0; }
+.toolbar-button:hover, .icon-button:hover { background: #343639; border-color: #636568; }
+.toolbar-button:active, .icon-button:active { background: #3b3d40; border-color: #8c8e91; }
+.primary { background: #cbd2dc; color: #171c24; border: 1px solid transparent; min-height: 38px; padding: 0 16px; font-weight: 600; }
+.primary:hover { background: #c4c6c9; }
+.primary:active { background: #949699; }
+.latency-good, .status-connected { color: #91cda7; }
+.latency-medium { color: #d3bc8d; }
+.latency-bad, .status-error, button.danger { color: #e9a1a7; }
+.update-banner { background: #2a2c2f; border-left: 2px solid #999b9e; border-radius: 6px; padding: 12px 14px; }
+.success-banner { border-left-color: #91cda7; }
+.error-banner { border-left-color: #e9a1a7; }
+.log-view, .log-view text, .routing-editor, .routing-editor text { background: #1d1f22; color: #c9cbce; font-family: monospace; font-size: 12px; }
+textview { border-radius: 8px; padding: 8px; }
+.routing-editor { min-height: 104px; }
+.dialog-box { padding: 18px; }
+.process-picker-row { border-radius: 6px; padding: 9px; }
+.update-dialog-title { font-size: 22px; font-weight: 600; }
+.update-version { color: #afb1b4; font-weight: 600; }
+.developer-link { background: transparent; border: 0; color: #929eaf; font-size: 12px; padding: 8px 0; }
+.developer-link:hover { background: transparent; color: #bec0c3; }
+.developer-link:active { color: #f4f6f9; }
+
+/* Explicit label color prevents native toggle themes from darkening tab text. */
+.settings-tabs button label { color: #a5abb4; }
+.settings-tabs button:checked label { color: #e4e7ec; }
+
+/* Small functional tiles; no nested frames around individual controls. */
+.overview { margin: 0 0 4px; }
+.connection-tile { background: rgba(35, 39, 45, .96); background-image: linear-gradient(145deg, rgba(231, 238, 249, .03), transparent); border: 1px solid rgba(230, 235, 242, .11); border-radius: 16px; padding: 18px 16px; }
+.session-tile { background: rgba(35, 39, 45, .93); background-image: linear-gradient(130deg, rgba(225, 236, 250, .035), transparent); border: 1px solid rgba(230, 235, 242, .10); border-radius: 16px; }
+.session-copy { padding: 16px 18px; }
+.session-server { font-size: 18px; font-weight: 600; color: #e9eef5; }
+.tile-caption { font-size: 13px; color: #aeb9c9; }
+.traffic-tile { background: rgba(33, 37, 43, .95); border: 1px solid rgba(230, 235, 242, .08); border-radius: 14px; padding: 13px 16px; }
+.card.settings-group { background: transparent; border: 0; padding: 0; }
+.card .settings-row { background: transparent; border: 0; padding: 6px 0; }
+.card.settings-group .settings-row { background: #23272c; border: 1px solid rgba(230, 235, 242, .07); padding: 10px 12px; }
+.settings-tabs button label { font-size: 14px; }
+.process-picker-row { background: #23272c; border: 1px solid rgba(230, 235, 242, .08); border-radius: 12px; margin: 3px 0; }
+button.primary label { color: #171c24; }
+button.nav-button:checked label { color: #f3f6fa; }

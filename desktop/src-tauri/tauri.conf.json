@@ -1,0 +1,41 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "NORY",
+  "version": "0.3.5",
+  "identifier": "io.nory.NORY",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://127.0.0.1:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "NORY",
+        "width": 1080,
+        "height": 800,
+        "minWidth": 720,
+        "minHeight": 580,
+        "backgroundColor": "#191919",
+        "decorations": false,
+        "transparent": false,
+        "theme": "Dark",
+        "visible": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost data:; style-src 'self' 'unsafe-inline'; connect-src 'self' ipc: http://ipc.localhost; font-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none'"
+    }
+  },
+  "bundle": {
+    "active": false,
+    "icon": [
+      "../../assets/icons/io.nory.NORY-32.png",
+      "../../assets/icons/io.nory.NORY-128.png",
+      "../../assets/icons/io.nory.NORY-256.png",
+      "../../assets/icons/io.nory.NORY.ico"
+    ]
+  }
+}

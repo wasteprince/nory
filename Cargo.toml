@@ -1,0 +1,70 @@
+[package]
+name = "nory"
+version = "0.3.5"
+edition = "2024"
+license = "GPL-3.0-only"
+description = "A native Xray, sing-box and Mihomo VPN client for Linux and Windows 11"
+repository = "https://github.com/wasteprince/nory"
+
+[features]
+default = ["native-ui"]
+native-ui = ["dep:gtk4", "dep:adw"]
+debian-package = []
+
+[dependencies]
+anyhow = "1"
+base64 = "0.22"
+directories = "6"
+ed25519-dalek = "2"
+flate2 = "1"
+hex = "0.4"
+libc = "0.2"
+percent-encoding = "2"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls", "socks"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+semver = "1"
+sha2 = "0.10"
+socket2 = { version = "0.6", features = ["all"] }
+tar = "0.4"
+tempfile = "3"
+thiserror = "2"
+url = "2"
+uuid = { version = "1", features = ["v4", "serde"] }
+zip = { version = "4", default-features = false, features = ["deflate"] }
+gtk4 = { version = "0.10", optional = true, features = ["v4_6"] }
+adw = { package = "libadwaita", version = "0.8", optional = true, features = ["v1_5"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+ksni = { version = "0.3.6", features = ["blocking"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+tray-icon = "0.24.2"
+windows-sys = { version = "0.61", features = [
+    "Win32_Foundation", "Win32_Security", "Win32_Security_Authorization",
+    "Win32_Devices_DeviceAndDriverInstallation",
+    "Win32_NetworkManagement_IpHelper", "Win32_NetworkManagement_Ndis",
+    "Win32_Networking_WinSock", "Win32_Storage_FileSystem", "Win32_System_IO",
+    "Win32_System_JobObjects", "Win32_System_Pipes", "Win32_System_Registry",
+    "Win32_System_Services", "Win32_System_SystemInformation", "Win32_System_Threading",
+    "Win32_System_Diagnostics_ToolHelp", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging",
+] }
+
+[build-dependencies]
+winresource = "0.1"
+
+[profile.release]
+lto = false
+codegen-units = 1
+opt-level = 3
+strip = "symbols"
+panic = "abort"
+
+[[bin]]
+name = "nory"
+path = "src/main.rs"
+required-features = ["native-ui"]
+
+[[bin]]
+name = "nory-helper"
+path = "src/bin/nory-helper.rs"

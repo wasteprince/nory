@@ -44,6 +44,12 @@ Debian 12, Ubuntu 22.04, Windows 10 и ARM64 этой сборкой не под
 
 **TG канал разработчика:** [@linuxset](https://t.me/linuxset)
 
+## Исходники
+
+[Сборка и структура проекта](desktop/README.md). В репозитории — код клиента, ресурсы и файлы упаковки. Готовые установщики находятся в [Releases](https://github.com/wasteprince/nory/releases).
+
+Ветка `main` содержит [изменения для следующей сборки](docs/development-notes.md); они пока не входят в установщики 0.3.5.
+
 ---
 
 Rust · Tauri · Vue · TypeScript · Tailwind CSS

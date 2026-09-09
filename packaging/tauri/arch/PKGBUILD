@@ -1,0 +1,17 @@
+pkgname=nory
+pkgver=0.3.5
+pkgrel=1
+pkgdesc='NORY VPN — Vue, TypeScript and Tauri; Xray and Mihomo TUN'
+arch=('x86_64')
+url='https://github.com/wasteprince/nory'
+license=('GPL-3.0-only')
+depends=('webkit2gtk-4.1' 'gtk3' 'libappindicator-gtk3' 'polkit' 'iproute2' 'iputils' 'nftables' 'ca-certificates' 'desktop-file-utils')
+optdepends=('noto-fonts-emoji: system-rendered flags on Linux')
+provides=('nory')
+conflicts=('nory-git')
+options=('!strip' '!debug' '!lto')
+install=nory.install
+package() {
+  # stage is created by scripts/tauri/stage-linux.sh after a release build.
+  cp -a "$startdir/stage/usr" "$pkgdir/usr"
+}

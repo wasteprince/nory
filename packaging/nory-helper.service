@@ -1,0 +1,26 @@
+[Unit]
+Description=NORY privileged TUN service
+Requires=nory-helper.socket
+After=network-online.target
+PartOf=nory-helper.socket
+
+[Service]
+Type=exec
+ExecStart=/usr/lib/nory/nory-helper serve
+ExecStopPost=/usr/lib/nory/nory-helper cleanup
+User=root
+Group=root
+StateDirectory=nory
+CacheDirectory=nory
+PrivateTmp=true
+PrivateDevices=false
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ReadWritePaths=/var/lib/nory /var/cache/nory /run/nory
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_SYS_PTRACE CAP_SETFCAP CAP_CHOWN CAP_FOWNER CAP_DAC_OVERRIDE
+SystemCallArchitectures=native

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=NORY
+Name[ru]=NORY
+Comment=Xray and Mihomo VPN client
+Comment[ru]=VPN-клиент для Xray и Mihomo
+Exec=nory
+Icon=io.nory.NORY
+Terminal=false
+Type=Application
+Categories=Network;Security;
+Keywords=VPN;TUN;Xray;Mihomo;VLESS;VMess;Trojan;
+StartupNotify=true
+StartupWMClass=io.nory.NORY

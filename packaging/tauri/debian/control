@@ -1,0 +1,14 @@
+Package: nory
+Version: 0.3.5
+Section: net
+Priority: optional
+Architecture: amd64
+Maintainer: NORY contributors <noreply@github.com>
+Depends: libc6 (>= 2.39), libgcc-s1, libgtk-3-0t64, libwebkit2gtk-4.1-0 (>= 2.40), libayatana-appindicator3-1, libxdo3, polkitd, pkexec, systemd, iproute2, iputils-ping, nftables, ca-certificates, desktop-file-utils
+Recommends: fonts-noto-color-emoji
+Conflicts: nory-git
+Homepage: https://github.com/wasteprince/nory
+Description: NORY VPN with a Vue and Tauri desktop interface
+ Xray with sing-box TUN and native Mihomo TUN, subscriptions,
+ process bypass, ICMP latency checks and signed application updates.
+ Built on Ubuntu 24.04; supports Ubuntu 24.04+ and Debian 13+ amd64.
