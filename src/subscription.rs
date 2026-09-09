@@ -25,6 +25,7 @@ pub enum FetchResult {
 #[derive(Debug)]
 pub struct SubscriptionUpdate {
     pub profiles: Vec<Profile>,
+    pub source_json: Option<Value>,
     pub etag: Option<String>,
     pub title: Option<String>,
     pub description: Option<String>,
@@ -45,6 +46,7 @@ pub fn new_subscription(url: &str, send_hwid: bool) -> Result<Subscription> {
         id,
         name: name.chars().take(100).collect(),
         url: url.to_string(),
+        source_json: None,
         description: None,
         website_url: None,
         support_url: None,
@@ -145,7 +147,7 @@ pub fn fetch(
         bail!("подписка превышает 8 МБ");
     }
 
-    let etag = response
+    let mut etag = response
         .headers()
         .get(ETAG)
         .and_then(|value| value.to_str().ok())
@@ -159,8 +161,28 @@ pub fn fetch(
         bail!("подписка превышает 8 МБ");
     }
     let body = String::from_utf8(bytes).context("подписка не является текстом UTF-8")?;
-    let body = crate::share::expand_subscription_body(&body);
+    let mut body = crate::share::expand_subscription_body(&body);
     merge_body_headers(&mut headers, &body);
+    // Many providers return bare links to an unknown User-Agent even though
+    // their explicit /json endpoint includes host descriptions and balancers.
+    // Negotiate that format under our own identity; never impersonate Happ.
+    if !body
+        .lines()
+        .find(|line| !line.trim().is_empty() && !line.trim_start().starts_with('#'))
+        .is_some_and(|line| line.trim_start().starts_with(['[', '{']))
+        && parse_many(&body).is_ok()
+    {
+        if let Ok(Some((json_body, json_headers))) = fetch_json_variant(client, subscription, hwid)
+        {
+            body = json_body;
+            for (name, value) in json_headers.iter() {
+                headers.insert(name.clone(), value.clone());
+            }
+            merge_body_headers(&mut headers, &body);
+            // The base URL's ETag must not mask changes at the JSON endpoint.
+            etag = None;
+        }
+    }
     let title = metadata_header(&headers, "profile-title");
     let description = metadata_header(&headers, "announce")
         .or_else(|| metadata_header(&headers, "profile-description"));
@@ -175,6 +197,12 @@ pub fn fetch(
     // Parse the actual NORY response. Never make a hidden second request
     // impersonating another client (or discard its headers/ETag).
     let mut profiles = parse_profiles(&body)?;
+    let clean_json = body
+        .lines()
+        .filter(|line| !line.trim_start().starts_with('#'))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let source_json = serde_json::from_str::<Value>(&clean_json).ok();
     for profile in &mut profiles {
         profile.subscription_id = Some(subscription.id);
         if let Some(raw) = profile.raw_config.as_mut() {
@@ -190,6 +218,7 @@ pub fn fetch(
 
     Ok(FetchResult::Updated(Box::new(SubscriptionUpdate {
         profiles,
+        source_json,
         etag,
         title,
         description,
@@ -222,16 +251,7 @@ pub fn parse_profiles(body: &str) -> Result<Vec<Profile>> {
     let mut profiles = Vec::new();
     for (index, item) in items.into_iter().enumerate() {
         let name = json_profile_name(&item, index);
-        let description = item
-            .pointer("/meta/serverDescription")
-            .or_else(|| item.pointer("/xray/meta/serverDescription"))
-            .or_else(|| item.pointer("/mihomo/meta/serverDescription"))
-            .or_else(|| item.get("serverDescription"))
-            .or_else(|| item.get("description"))
-            .and_then(Value::as_str)
-            .map(str::trim)
-            .filter(|value| !value.is_empty())
-            .map(|value| value.chars().take(2_000).collect::<String>());
+        let description = host_description(&item);
         let mut profile = profile_from_json_item(name, item)?;
         profile.description = description;
         profiles.push(profile);
@@ -240,6 +260,96 @@ pub fn parse_profiles(body: &str) -> Result<Vec<Profile>> {
         bail!("JSON подписки не содержит серверов");
     }
     Ok(merge_native_json_variants(profiles))
+}
+
+pub(crate) fn host_description(item: &Value) -> Option<String> {
+    fn from_object(object: &Value) -> Option<String> {
+        [
+            "serverDescription",
+            "server_description",
+            "server-description",
+            "description",
+            "subtitle",
+            "comment",
+        ]
+        .iter()
+        .find_map(|key| {
+            let value = object.get(key)?;
+            let text = value
+                .as_str()
+                .or_else(|| value.get("text").and_then(Value::as_str))?;
+            let text = text.trim();
+            (!text.is_empty()).then(|| text.chars().take(2_000).collect())
+        })
+    }
+    [Some(item), item.get("xray"), item.get("mihomo")]
+        .into_iter()
+        .flatten()
+        .find_map(|node| {
+            node.get("meta")
+                .and_then(from_object)
+                .or_else(|| node.get("metadata").and_then(from_object))
+                .or_else(|| from_object(node))
+        })
+}
+
+fn fetch_json_variant(
+    client: &Client,
+    subscription: &Subscription,
+    hwid: Option<&str>,
+) -> Result<Option<(String, HeaderMap)>> {
+    let mut url = normalize_url(&subscription.url)?;
+    let last = url
+        .path()
+        .trim_end_matches('/')
+        .rsplit('/')
+        .next()
+        .unwrap_or_default();
+    if last.is_empty()
+        || matches!(
+            last,
+            "json" | "mihomo" | "clash" | "singbox" | "stash" | "v2ray-json"
+        )
+    {
+        return Ok(None);
+    }
+    let path = format!("{}/json", url.path().trim_end_matches('/'));
+    url.set_path(&path);
+    url.set_fragment(None);
+    let mut request = client
+        .get(url)
+        .timeout(std::time::Duration::from_secs(8))
+        .header(reqwest::header::ACCEPT, "application/json")
+        .header(USER_AGENT, format!("NORY/{}", env!("CARGO_PKG_VERSION")));
+    if subscription.send_hwid
+        && let Some(hwid) = hwid
+    {
+        request = with_device_headers(request, hwid);
+    }
+    let response = request.send()?.error_for_status()?;
+    if response
+        .content_length()
+        .is_some_and(|len| len > MAX_SUBSCRIPTION_BYTES)
+    {
+        bail!("подписка превышает 8 МБ");
+    }
+    let headers = response.headers().clone();
+    let mut bytes = Vec::new();
+    response
+        .take(MAX_SUBSCRIPTION_BYTES + 1)
+        .read_to_end(&mut bytes)?;
+    if bytes.len() as u64 > MAX_SUBSCRIPTION_BYTES {
+        bail!("подписка превышает 8 МБ");
+    }
+    let body = crate::share::expand_subscription_body(&String::from_utf8(bytes)?);
+    let profiles = parse_profiles(&body)?;
+    if !profiles
+        .iter()
+        .all(|p| p.source_format == ProfileFormat::Json)
+    {
+        return Ok(None);
+    }
+    Ok(Some((body, headers)))
 }
 
 fn merge_body_headers(headers: &mut HeaderMap, body: &str) {
@@ -295,6 +405,10 @@ fn merge_native_json_variants(profiles: Vec<Profile>) -> Vec<Profile> {
             if !existing.name.eq_ignore_ascii_case(&profile.name)
                 || !existing.address.eq_ignore_ascii_case(&profile.address)
                 || existing.port != profile.port
+                || existing.protocol() != profile.protocol()
+                || serde_json::to_value(&existing.connection).ok()
+                    != serde_json::to_value(&profile.connection).ok()
+                || existing.stream.network.as_xray() != profile.stream.network.as_xray()
             {
                 return false;
             }
@@ -303,6 +417,9 @@ fn merge_native_json_variants(profiles: Vec<Profile>) -> Vec<Profile> {
             };
             let existing_xray = crate::mihomo::native_xray_config(raw).is_some();
             let existing_mihomo = crate::mihomo::native_mihomo_config(raw).is_some();
+            if existing_xray && existing_mihomo {
+                return false;
+            }
             existing_xray && incoming_mihomo.is_some() || existing_mihomo && incoming_xray.is_some()
         });
         let Some(index) = pair else {
@@ -337,6 +454,12 @@ fn merge_native_json_variants(profiles: Vec<Profile>) -> Vec<Profile> {
             "xray": xray.expect("paired Xray JSON"),
             "mihomo": mihomo.expect("paired Mihomo JSON")
         }));
+        if combined.description.is_none() {
+            combined.description = merged[index]
+                .description
+                .clone()
+                .or_else(|| combined.raw_config.as_ref().and_then(host_description));
+        }
         merged[index] = combined;
     }
     merged
@@ -720,6 +843,35 @@ fn header_text(value: &str, fallback: &str) -> String {
     }
 }
 
+pub fn apply_url_change(
+    data: &mut AppData,
+    old: &Subscription,
+    replacement: Subscription,
+    result: FetchResult,
+) -> Result<()> {
+    let index = data
+        .subscriptions
+        .iter()
+        .position(|s| s.id == old.id)
+        .context("Подписка удалена")?;
+    if data.subscriptions[index].url != old.url {
+        bail!("Ссылка уже изменена. Откройте редактирование ещё раз");
+    }
+    if data
+        .subscriptions
+        .iter()
+        .any(|s| s.id != old.id && s.url == replacement.url)
+    {
+        bail!("Эта ссылка уже используется другой подпиской");
+    }
+    if replacement.id != old.id || matches!(result, FetchResult::NotModified) {
+        bail!("Не получены данные новой подписки");
+    }
+    data.subscriptions[index] = replacement;
+    apply_fetch(data, old.id, result)?;
+    Ok(())
+}
+
 pub fn apply_fetch(data: &mut AppData, id: Uuid, result: FetchResult) -> Result<usize> {
     let subscription = data
         .subscriptions
@@ -738,6 +890,7 @@ pub fn apply_fetch(data: &mut AppData, id: Uuid, result: FetchResult) -> Result<
         FetchResult::Updated(update) => {
             let SubscriptionUpdate {
                 mut profiles,
+                source_json,
                 etag,
                 title,
                 description,
@@ -749,25 +902,39 @@ pub fn apply_fetch(data: &mut AppData, id: Uuid, result: FetchResult) -> Result<
                 total,
                 expire,
             } = *update;
-            let old: Vec<Profile> = data
+            // One-to-one matching; hash each JSON only once, not for every
+            // pair in a subscription. Duplicate rows keep distinct identities.
+            let mut old: std::collections::HashMap<
+                (String, String),
+                std::collections::VecDeque<Profile>,
+            > = std::collections::HashMap::new();
+            for profile in data
                 .profiles
                 .iter()
-                .filter(|profile| profile.subscription_id == Some(id))
-                .cloned()
+                .filter(|p| p.subscription_id == Some(id))
+            {
+                old.entry((profile.name.clone(), profile.endpoint_key()))
+                    .or_default()
+                    .push_back(profile.clone());
+            }
+            let mut used_ids: std::collections::HashSet<Uuid> = data
+                .profiles
+                .iter()
+                .filter(|p| p.subscription_id != Some(id))
+                .map(|p| p.id)
                 .collect();
             for profile in &mut profiles {
-                if let Some(previous) = old.iter().find(|item| {
-                    item.endpoint_key() == profile.endpoint_key() && item.name == profile.name
-                }) {
+                profile.subscription_id = Some(id);
+                if let Some(previous) = old
+                    .get_mut(&(profile.name.clone(), profile.endpoint_key()))
+                    .and_then(std::collections::VecDeque::pop_front)
+                {
                     profile.id = previous.id;
                     profile.favorite = previous.favorite;
                     profile.latency_ms = previous.latency_ms;
-                    if profile.source_format == ProfileFormat::Link
-                        && previous.source_format == ProfileFormat::Json
-                    {
-                        profile.source_format = ProfileFormat::Json;
-                        profile.description = previous.description.clone();
-                    }
+                }
+                while !used_ids.insert(profile.id) {
+                    profile.id = Uuid::new_v4();
                 }
             }
             let insert_at = data
@@ -783,6 +950,7 @@ pub fn apply_fetch(data: &mut AppData, id: Uuid, result: FetchResult) -> Result<
                 subscription.name = title.trim().chars().take(100).collect();
             }
             subscription.description = description;
+            subscription.source_json = source_json;
             subscription.website_url = website_url;
             subscription.support_url = support_url;
             subscription.provider_update_interval_hours = update_interval_hours;

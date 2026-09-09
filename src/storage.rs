@@ -135,7 +135,41 @@ pub fn load_state(paths: &Paths) -> Result<AppData> {
     }
     let mut data: AppData =
         read_json(&paths.state_file()).context("не удалось прочитать настройки NORY")?;
+    let old_version = data.version;
     data.version = crate::models::STATE_VERSION;
+    // Repair IDs produced by old endpoint-only subscription matching. Keep the
+    // first occurrence (and therefore the current selection), never delete hosts.
+    let mut changed = old_version != data.version;
+    let mut ids = std::collections::HashSet::new();
+    for profile in &mut data.profiles {
+        if profile
+            .description
+            .as_deref()
+            .is_none_or(|text| text.trim().is_empty())
+            && let Some(description) = profile
+                .raw_config
+                .as_ref()
+                .and_then(crate::subscription::host_description)
+        {
+            profile.description = Some(description);
+            changed = true;
+        }
+        while !ids.insert(profile.id) {
+            profile.id = Uuid::new_v4();
+            changed = true;
+        }
+    }
+    for sub in &mut data.subscriptions {
+        if old_version < 3 && sub.source_json.is_none() && sub.etag.is_some() {
+            // A 304 cannot supply the original JSON for older installations.
+            sub.etag = None;
+            changed = true;
+        }
+    }
+    if data.settings.ping_url == "https://cp.cloudflare.com/generate_204" {
+        data.settings.ping_url = crate::models::default_ping_url();
+        changed = true;
+    }
     let previous_subscription = data.selected_subscription;
     if data.selected_subscription.is_none_or(|id| {
         !data
@@ -175,7 +209,7 @@ pub fn load_state(paths: &Paths) -> Result<AppData> {
     if data.settings.tun_interface_name == ["no", "bium0"].concat() {
         data.settings.tun_interface_name = "nory0".into();
         let _ = atomic_json(&paths.state_file(), &data);
-    } else if previous_subscription != data.selected_subscription {
+    } else if changed || previous_subscription != data.selected_subscription {
         let _ = atomic_json(&paths.state_file(), &data);
     }
     Ok(data)

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use uuid::Uuid;
 
-pub const STATE_VERSION: u32 = 2;
+pub const STATE_VERSION: u32 = 3;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppData {
@@ -170,8 +170,8 @@ pub enum PingType {
     Icmp,
 }
 
-fn default_ping_url() -> String {
-    "https://cp.cloudflare.com/generate_204".into()
+pub(crate) fn default_ping_url() -> String {
+    "https://connectivitycheck.gstatic.com/generate_204".into()
 }
 
 const fn default_socks_port() -> u16 {
@@ -367,20 +367,18 @@ impl Profile {
     }
 
     pub fn endpoint_key(&self) -> String {
-        if self.raw_config.is_some() {
-            return format!(
-                "JSON:{}:{}:{}",
-                self.name.trim().to_lowercase(),
-                self.address.to_lowercase(),
-                self.port
-            );
-        }
-        format!(
-            "{}:{}:{}",
-            self.protocol(),
+        // A shared CDN address/port does not identify a profile. Credentials,
+        // transport and complete JSON routing may all differ at that endpoint.
+        use sha2::{Digest, Sha256};
+        let identity = serde_json::to_vec(&(
             self.address.to_lowercase(),
-            self.port
-        )
+            self.port,
+            &self.connection,
+            &self.stream,
+            &self.raw_config,
+        ))
+        .expect("profile identity is serializable");
+        format!("{:x}", Sha256::digest(identity))
     }
 }
 
@@ -530,6 +528,9 @@ pub struct Subscription {
     pub id: Uuid,
     pub name: String,
     pub url: String,
+    /// Original provider JSON, only exposed to the UI on explicit request.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_json: Option<serde_json::Value>,
     #[serde(default)]
     pub description: Option<String>,
     #[serde(default)]

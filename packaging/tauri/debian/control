@@ -1,5 +1,5 @@
 Package: nory
-Version: 0.3.6
+Version: 0.3.7
 Section: net
 Priority: optional
 Architecture: amd64

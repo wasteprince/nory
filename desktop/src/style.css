@@ -542,6 +542,25 @@
     margin-left: 12px;
     padding-left: 12px;
     border-left: 1px solid var(--line-strong);
+    flex-shrink: 0;
+  }
+  .profile-badges {
+    @apply flex min-w-0 flex-wrap items-center gap-1.5;
+  }
+  .json-modal {
+    width: 900px;
+  }
+  .json-content {
+    width: 100%;
+    height: min(55dvh, 560px);
+    min-height: 180px;
+    font-family: ui-monospace, "Cascadia Code", "DejaVu Sans Mono", monospace;
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--text);
+    background: var(--canvas);
+    tab-size: 2;
+    resize: vertical;
   }
   .subscription-note {
     color: #dddbe6;
@@ -880,10 +899,9 @@
   .notices {
     position: fixed;
     top: 74px;
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: 680px;
-    width: calc(100% - 48px);
+    right: 24px;
+    max-width: min(420px, calc(100% - 48px));
+    width: max-content;
     z-index: 80;
     display: flex;
     flex-direction: column;
@@ -893,13 +911,13 @@
   .notice {
     display: flex;
     align-items: center;
-    gap: 11px;
-    padding: 10px 14px;
-    background: #293830;
-    border: 1px solid #647c6e80;
-    color: #c1decf;
-    border-radius: 13px;
-    box-shadow: 0 6px 24px #0004;
+    gap: 10px;
+    padding: 8px 10px 8px 16px;
+    background: #29292c;
+    border: 1px solid #424247;
+    color: #e1e1e5;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px #0003;
     pointer-events: auto;
     animation: appear 0.18s;
   }
@@ -1055,6 +1073,17 @@
     }
   }
   @media (max-width: 900px) {
+    .subscription-bar {
+      flex-wrap: wrap;
+    }
+    .subscription-tools {
+      width: 100%;
+      justify-content: flex-end;
+      margin: 6px 0 0;
+      padding: 8px 0 0;
+      border-left: 0;
+      border-top: 1px solid var(--line-strong);
+    }
     main {
       padding: 24px;
     }

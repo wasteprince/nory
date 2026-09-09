@@ -2,6 +2,7 @@
 import { Globe2, Check } from "@lucide/vue";
 import { flag, cleanName } from "./format";
 import type { Profile } from "./types";
+import ProtocolBadges from "./ProtocolBadges.vue";
 defineProps<{ profile: Profile; selected: boolean; disabled: boolean }>();
 defineEmits<{ select: [] }>();
 </script>
@@ -40,14 +41,7 @@ defineEmits<{ select: [] }>();
       {{ profile.description || " " }}
     </p>
     <div class="flex min-w-0 items-center gap-1.5 mt-auto">
-      <span class="protocol">{{ profile.protocol }}</span
-      ><span v-if="profile.format === 'json'" class="protocol">JSON</span
-      ><span class="transport"
-        >{{ profile.transport === "RAW" ? "TCP" : profile.transport
-        }}<template v-if="profile.security === 'REALITY'">
-          · REALITY</template
-        ></span
-      ><span
+      <ProtocolBadges :profile="profile" /><span
         class="latency"
         :class="{
           'is-fast': profile.latency_ms !== null && profile.latency_ms < 100,

@@ -41,6 +41,31 @@ pub fn parse_many(input: &str) -> Result<Vec<Profile>> {
 }
 
 pub fn parse_link(link: &str) -> Result<Profile> {
+    let mut profile = parse_link_inner(link)?;
+    if let Some(encoded) = link.trim().strip_prefix("vmess://") {
+        if let Ok(bytes) = decode_base64(encoded.trim())
+            && let Ok(value) = serde_json::from_slice::<Value>(&bytes)
+        {
+            profile.description = crate::subscription::host_description(&value);
+        }
+    } else if let Ok(url) = Url::parse(link.trim()) {
+        profile.description = url.query_pairs().find_map(|(key, value)| {
+            (matches!(
+                key.as_ref(),
+                "description"
+                    | "serverDescription"
+                    | "server_description"
+                    | "server-description"
+                    | "subtitle"
+                    | "comment"
+            ) && !value.trim().is_empty())
+            .then(|| value.trim().chars().take(2_000).collect())
+        });
+    }
+    Ok(profile)
+}
+
+fn parse_link_inner(link: &str) -> Result<Profile> {
     let link = link.trim();
     if link.starts_with("vless://") {
         return parse_vless(link);

@@ -39,6 +39,9 @@ pub enum Action {
     SelectSubscription { id: Option<Uuid> },
     AddSubscription { url: String, send_hwid: bool },
     RefreshSubscription { id: Uuid },
+    SubscriptionUrl { id: Uuid },
+    SubscriptionJson { id: Uuid },
+    ChangeSubscriptionUrl { id: Uuid, url: String },
     DeleteSubscription { id: Uuid },
     ImportLinks { text: String },
     Ping { subscription_id: Option<Uuid> },
@@ -341,6 +344,72 @@ impl Desktop {
                 *self.update.lock().unwrap_or_else(|p| p.into_inner()) = release;
                 return Ok(json!(result));
             }
+            Action::SubscriptionUrl { id } => {
+                let data = self.data.lock().unwrap_or_else(|p| p.into_inner());
+                let sub = data
+                    .subscriptions
+                    .iter()
+                    .find(|s| s.id == id)
+                    .context("Подписка удалена")?;
+                return Ok(json!({"id": id, "name": sub.name, "url": sub.url}));
+            }
+            Action::SubscriptionJson { id } => {
+                let data = self.data.lock().unwrap_or_else(|p| p.into_inner());
+                let sub = data
+                    .subscriptions
+                    .iter()
+                    .find(|s| s.id == id)
+                    .context("Подписка удалена")?;
+                let original = sub.source_json.is_some();
+                let document = sub.source_json.clone().unwrap_or_else(|| {
+                    json!(
+                        data.profiles
+                            .iter()
+                            .filter(|p| p.subscription_id == Some(id))
+                            .map(|p| p.raw_config.clone().unwrap_or_else(|| json!(p)))
+                            .collect::<Vec<_>>()
+                    )
+                });
+                return Ok(json!({"id": id, "name": sub.name, "original": original,
+                    "text": serde_json::to_string_pretty(&document)?}));
+            }
+            Action::ChangeSubscriptionUrl { id, url } => {
+                let _network = self.network_guard()?;
+                let old = self
+                    .data
+                    .lock()
+                    .unwrap_or_else(|p| p.into_inner())
+                    .subscriptions
+                    .iter()
+                    .find(|s| s.id == id)
+                    .cloned()
+                    .context("Подписка удалена")?;
+                let mut replacement = subscription::new_subscription(&url, old.send_hwid)?;
+                replacement.id = id;
+                if replacement.url == old.url {
+                    return Ok(self.snapshot());
+                }
+                if self
+                    .data
+                    .lock()
+                    .unwrap_or_else(|p| p.into_inner())
+                    .subscriptions
+                    .iter()
+                    .any(|s| s.id != id && s.url == replacement.url)
+                {
+                    bail!("Эта ссылка уже используется другой подпиской");
+                }
+                // No old ETag, no mutation until the new URL has been fetched
+                // and parsed successfully. The ID, list position and HWID stay.
+                let result = self.fetch(&replacement)?;
+                if matches!(result, subscription::FetchResult::NotModified) {
+                    bail!("Сервер не вернул содержимое новой подписки");
+                }
+                self.change(|data| {
+                    subscription::apply_url_change(data, &old, replacement, result)
+                })?;
+                return Ok(self.snapshot());
+            }
             Action::AddSubscription { url, send_hwid } => {
                 let _network = self.network_guard()?;
                 let sub = subscription::new_subscription(&url, send_hwid)?;
@@ -394,14 +463,7 @@ impl Desktop {
                 let _network = self.network_guard()?;
                 let (profiles, settings) = {
                     let data = self.data.lock().unwrap_or_else(|p| p.into_inner());
-                    (
-                        data.profiles
-                            .iter()
-                            .filter(|p| p.subscription_id == subscription_id)
-                            .cloned()
-                            .collect::<Vec<_>>(),
-                        data.settings.clone(),
-                    )
+                    (ping_targets(&data, subscription_id)?, data.settings.clone())
                 };
                 let results = Mutex::new(Vec::new());
                 let route = crate::network::DirectRoute::discover()?;
@@ -449,7 +511,11 @@ impl Desktop {
                 let disconnected = self.core.status().phase == ConnectionPhase::Disconnected;
                 self.change(|data| {
                     for (id, ms) in results.into_inner().unwrap() {
-                        if let Some(p) = data.profiles.iter_mut().find(|p| p.id == id) {
+                        if let Some(p) = data
+                            .profiles
+                            .iter_mut()
+                            .find(|p| p.id == id && p.subscription_id == subscription_id)
+                        {
                             p.latency_ms = ms;
                         }
                     }
@@ -707,6 +773,22 @@ pub fn validate_settings(s: &Settings) -> Result<()> {
         }
     }
     Ok(())
+}
+
+fn ping_targets(data: &AppData, subscription_id: Option<Uuid>) -> Result<Vec<Profile>> {
+    if subscription_id.is_some_and(|id| !data.subscriptions.iter().any(|s| s.id == id)) {
+        bail!("Подписка удалена");
+    }
+    let profiles: Vec<_> = data
+        .profiles
+        .iter()
+        .filter(|p| p.subscription_id == subscription_id)
+        .cloned()
+        .collect();
+    if profiles.is_empty() {
+        bail!("В выбранной подписке нет серверов для проверки");
+    }
+    Ok(profiles)
 }
 
 #[cfg(target_os = "windows")]

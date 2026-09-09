@@ -36,11 +36,12 @@ import {
   Monitor,
   Activity,
   Download,
-  CheckCheck,
   SlidersHorizontal,
   Minus,
   Square,
   Copy,
+  Braces,
+  Link2,
 } from "@lucide/vue";
 import {
   snapshot,
@@ -60,6 +61,7 @@ import { isEditing, subscriptionFromPaste } from "./clipboard";
 import type { Settings, Log, CatalogItem } from "./types";
 import Toggle from "./Toggle.vue";
 import ServerCard from "./ServerCard.vue";
+import ProtocolBadges from "./ProtocolBadges.vue";
 import WorldMap from "./WorldMap.vue";
 import SelectMenu from "./SelectMenu.vue";
 import logo from "../../assets/io.nory.NORY.svg";
@@ -85,6 +87,10 @@ const adding = ref(false),
   subUrl = ref(""),
   sendHwid = ref(true),
   deleting = ref(false);
+const subscriptionDialog = ref<"json" | "url" | null>(null);
+const subscriptionDetails = ref<{ id: string; name: string; url?: string; text?: string; original?: boolean } | null>(null);
+const subscriptionDialogLoading = ref(false), subscriptionDialogError = ref(""), editedUrl = ref("");
+let subscriptionDialogRevision = 0;
 const catalogOpen = ref(false),
   catalogMode = ref<"apps" | "processes">("apps"),
   catalog = ref<CatalogItem[]>([]),
@@ -317,8 +323,46 @@ async function refreshSub() {
     await action(
       "refresh_subscription",
       { id: currentSub.value.id },
-      "Подписка успешно обновлена",
+      "Подписка обновлена",
     );
+}
+async function openSubscriptionDetails(mode: "json" | "url") {
+  const sub = currentSub.value;
+  if (!sub) return;
+  const revision = ++subscriptionDialogRevision;
+  subscriptionDialog.value = mode;
+  subscriptionDetails.value = { id: sub.id, name: sub.name };
+  subscriptionDialogLoading.value = true;
+  subscriptionDialogError.value = "";
+  editedUrl.value = "";
+  try {
+    const result = await request<NonNullable<typeof subscriptionDetails.value>>({
+      type: mode === "json" ? "subscription_json" : "subscription_url", id: sub.id,
+    });
+    if (revision !== subscriptionDialogRevision) return;
+    subscriptionDetails.value = result;
+    editedUrl.value = result.url ?? "";
+    await nextTick();
+    document.querySelector<HTMLElement>("#edit-sub-url, #subscription-json")?.focus();
+  } catch (e) {
+    if (revision === subscriptionDialogRevision) subscriptionDialogError.value = String(e);
+  } finally {
+    if (revision === subscriptionDialogRevision) subscriptionDialogLoading.value = false;
+  }
+}
+function closeSubscriptionDetails() {
+  if (busy.value === "change_subscription_url") return;
+  subscriptionDialogRevision++;
+  subscriptionDialog.value = null;
+  subscriptionDetails.value = null;
+  editedUrl.value = "";
+  subscriptionDialogError.value = "";
+}
+async function changeSubscriptionUrl() {
+  const details = subscriptionDetails.value;
+  if (!details) return;
+  if (await action("change_subscription_url", { id: details.id, url: editedUrl.value },
+    "Ссылка изменена. Подписка обновлена")) closeSubscriptionDetails();
 }
 async function addSubscription() {
   if (
@@ -337,7 +381,7 @@ async function addSubscription() {
 function pasteSubscription(event: ClipboardEvent) {
   // Normal text-field paste must keep working. Clipboard access only happens
   // in a user-initiated paste event; no polling or permissions prompt.
-  if (isEditing(event.target) || adding.value || catalogOpen.value || deleting.value) return;
+  if (isEditing(event.target) || adding.value || catalogOpen.value || deleting.value || subscriptionDialog.value) return;
   const url = subscriptionFromPaste(event.clipboardData?.getData("text/plain") ?? "");
   if (!url) return;
   event.preventDefault();
@@ -497,6 +541,7 @@ function modalKey(event: KeyboardEvent) {
     adding.value = false;
     deleting.value = false;
     catalogOpen.value = false;
+    closeSubscriptionDetails();
     event.preventDefault();
   }
   if (event.key === "Tab") {
@@ -517,7 +562,7 @@ function modalKey(event: KeyboardEvent) {
   }
 }
 watch(
-  () => adding.value || deleting.value || catalogOpen.value,
+  () => adding.value || deleting.value || catalogOpen.value || !!subscriptionDialog.value,
   async (shown) => {
     if (shown) restoreFocus = document.activeElement as HTMLElement;
     await nextTick();
@@ -666,7 +711,7 @@ const fields: Record<
     {
       key: "ping_url",
       label: "Адрес прокси-проверки",
-      description: "HTTPS-страница с ответом 204. Проверяется именно через сервер, а не напрямую.",
+      description: "По умолчанию — проверка подключения Google (gstatic), HTTP 204. Запрос идёт через проверяемый сервер. Можно указать свой HTTPS-адрес с ответом 204.",
       type: "text",
     },
     {
@@ -898,7 +943,7 @@ const fields: Record<
                   <span class="eyebrow">{{
                     nowConnected ? "Текущий сервер" : "Выбранный сервер"
                   }}</span>
-                  <span v-if="shownProfile" class="selected-latency" title="Среднее время ответа · ICMP">
+                  <span v-if="shownProfile" class="selected-latency" :title="`Среднее время ответа · ${snapshot.settings.ping_type ?? 'proxy'} · 5 запросов`">
                     <Zap :size="13" />
                     {{ shownProfile.latency_ms === null ? "n/a" : `${shownProfile.latency_ms} мс` }}
                   </span>
@@ -927,17 +972,7 @@ const fields: Record<
                 </p>
                 <p v-if="shownProfile?.description" class="server-description">{{ shownProfile.description }}</p>
                 <div class="selected-protocols" v-if="shownProfile">
-                  <span class="tiny-chip">{{ shownProfile.protocol }}</span
-                  ><span class="tiny-chip">{{
-                    shownProfile.transport === "RAW"
-                      ? "TCP"
-                      : shownProfile.transport
-                  }}</span
-                  ><span
-                    class="tiny-chip"
-                    v-if="shownProfile.security === 'REALITY'"
-                    >REALITY</span
-                  >
+                  <ProtocolBadges :profile="shownProfile" />
                 </div>
               </section>
               <div class="traffic-grid card">
@@ -1002,14 +1037,14 @@ const fields: Record<
               <div class="subscription-tools">
                 <button
                   class="icon-button circle"
-                  :title="`Пинг всех серверов · ${snapshot.settings.ping_type ?? 'proxy'} · 5 запросов вне активного VPN`"
-                  aria-label="Пинг всех серверов"
+                  :title="`Пинг этой подписки · ${snapshot.settings.ping_type ?? 'proxy'} · 5 запросов вне активного VPN`"
+                  aria-label="Пинг этой подписки"
                   :disabled="working || !profiles.length || status.network_busy"
                   @click="
                     action(
                       'ping',
                       { subscription_id: snapshot.selected_subscription },
-                      'Проверка серверов завершена',
+                      `Проверка подписки «${currentSub?.name ?? 'Мои серверы'}» завершена`,
                     )
                   "
                 >
@@ -1029,7 +1064,17 @@ const fields: Record<
                   <RefreshCw
                     :size="16"
                     :class="{ spin: busy === 'refresh_subscription' }"
-                  /></button
+                  /></button>
+                <button v-if="currentSub" class="icon-button circle"
+                  title="JSON подписки" aria-label="JSON подписки"
+                  @click="openSubscriptionDetails('json')">
+                  <Braces :size="16" />
+                </button>
+                <button v-if="currentSub" class="icon-button circle"
+                  title="Изменить ссылку подписки" aria-label="Изменить ссылку подписки"
+                  :disabled="working || status.network_busy" @click="openSubscriptionDetails('url')">
+                  <Link2 :size="16" />
+                </button
                 ><button
                   v-if="currentSub"
                   class="icon-button circle danger"
@@ -1372,10 +1417,7 @@ const fields: Record<
         class="notice"
         :class="{ error: item.error }"
       >
-        <AlertCircle v-if="item.error" :size="19" /><CheckCheck
-          v-else
-          :size="19"
-        />
+        <AlertCircle v-if="item.error" :size="17" class="shrink-0" />
         <p>{{ item.text }}</p>
         <button
           v-if="item.retry"
@@ -1479,6 +1521,44 @@ const fields: Record<
               v-else
               :size="16"
             />{{ working ? "Загружаем…" : "Добавить" }}
+          </button>
+        </form>
+      </section>
+    </div>
+
+    <div v-if="subscriptionDialog" class="modal-backdrop"
+      @click="backdrop($event, closeSubscriptionDetails)">
+      <section class="modal" :class="{ 'json-modal': subscriptionDialog === 'json' }"
+        role="dialog" aria-modal="true" aria-labelledby="subscription-details-title">
+        <div class="modal-heading">
+          <div>
+            <h2 id="subscription-details-title">{{ subscriptionDialog === 'json' ? 'JSON подписки' : 'Изменить ссылку' }}</h2>
+            <p class="muted">{{ subscriptionDetails?.name }}</p>
+          </div>
+          <button class="icon-button" aria-label="Закрыть" :disabled="busy === 'change_subscription_url'"
+            @click="closeSubscriptionDetails"><X :size="19" /></button>
+        </div>
+        <p v-if="subscriptionDialogLoading" class="muted" role="status">Загружаем…</p>
+        <p v-else-if="subscriptionDialogError" role="alert">{{ subscriptionDialogError }}</p>
+        <template v-else-if="subscriptionDialog === 'json'">
+          <p id="json-privacy" class="footnote mb-3">
+            {{ subscriptionDetails?.original ? 'Исходный JSON провайдера; изменено только форматирование.' : 'Сохранённые конфигурации, не исходный ответ. Если провайдер отдаёт JSON, обновите подписку, чтобы сохранить оригинал.' }}
+            Здесь могут быть пароли и ключи. Не публикуйте этот текст.
+          </p>
+          <textarea id="subscription-json" class="json-content" :value="subscriptionDetails?.text"
+            readonly spellcheck="false" wrap="off" aria-label="Содержимое JSON подписки"
+            aria-describedby="json-privacy" />
+          <p class="footnote">Только просмотр · Ctrl+A и Ctrl+C для копирования</p>
+        </template>
+        <form v-else @submit.prevent="changeSubscriptionUrl">
+          <label for="edit-sub-url">Новая ссылка от провайдера</label>
+          <input id="edit-sub-url" v-model="editedUrl" type="url" required autocomplete="off"
+            spellcheck="false" :disabled="working" />
+          <p class="footnote">Сначала проверим новую ссылку. Если загрузка не получится, старая подписка останется без изменений. HWID и положение подписки сохранятся.</p>
+          <p v-if="vpnRequested" class="footnote">Текущее VPN-соединение не будет прервано; новый список используется при следующем подключении.</p>
+          <button class="button primary w-full mt-5" :disabled="working || !editedUrl.trim() || editedUrl.trim() === subscriptionDetails?.url">
+            <LoaderCircle v-if="working" class="spin" :size="16" /><Check v-else :size="16" />
+            {{ working ? 'Проверяем ссылку…' : 'Сохранить и обновить' }}
           </button>
         </form>
       </section>
