@@ -19,11 +19,11 @@ id_rsa*
 id_ed25519*
 
 # Build dependencies, generated files and caches.
-target/
+target
 node_modules/
 dist/
 .cache/
-.bundled/
+.bundled
 .vite/
 __pycache__/
 *.py[cod]

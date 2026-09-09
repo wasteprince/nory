@@ -25,11 +25,11 @@ VPN-клиент для Linux и Windows 11. Два ядра, один инте�
 
 ## Установка
 
-| Система | Пакет 0.3.5 | Как установить |
+| Система | Пакет 0.3.6 | Как установить |
 | --- | --- | --- |
-| Arch Linux x86_64 | [pkg.tar.zst](https://github.com/wasteprince/nory/releases/download/v0.3.5/nory-0.3.5-1-x86_64.pkg.tar.zst) | `sudo pacman -U ./nory-0.3.5-1-x86_64.pkg.tar.zst` |
-| Ubuntu 24.04+ / Debian 13+ amd64 | [deb](https://github.com/wasteprince/nory/releases/download/v0.3.5/nory_0.3.5_amd64.deb) | `sudo apt install ./nory_0.3.5_amd64.deb` |
-| Windows 11 x64 | [Установщик](https://github.com/wasteprince/nory/releases/download/v0.3.5/NORY-0.3.5-windows-x64-setup.exe) | Запустить скачанный `.exe` |
+| Arch Linux x86_64 | [pkg.tar.zst](https://github.com/wasteprince/nory/releases/download/v0.3.6/nory-0.3.6-1-x86_64.pkg.tar.zst) | `sudo pacman -U ./nory-0.3.6-1-x86_64.pkg.tar.zst` |
+| Ubuntu 24.04+ / Debian 13+ amd64 | [deb](https://github.com/wasteprince/nory/releases/download/v0.3.6/nory_0.3.6_amd64.deb) | `sudo apt install ./nory_0.3.6_amd64.deb` |
+| Windows 11 x64 | [Установщик](https://github.com/wasteprince/nory/releases/download/v0.3.6/NORY-0.3.6-windows-x64-setup.exe) | Запустить скачанный `.exe` |
 
 Ядра входят в комплект. Перед ручным обновлением закройте NORY через трей — подписки и настройки сохранятся.
 
@@ -48,7 +48,7 @@ Debian 12, Ubuntu 22.04, Windows 10 и ARM64 этой сборкой не под
 
 [Сборка и структура проекта](desktop/README.md). В репозитории — код клиента, ресурсы и файлы упаковки. Готовые установщики находятся в [Releases](https://github.com/wasteprince/nory/releases).
 
-Ветка `main` содержит [изменения для следующей сборки](docs/development-notes.md); они пока не входят в установщики 0.3.5.
+[Изменения в 0.3.6](docs/development-notes.md) включены в пакеты для всех трёх систем.
 
 ---
 
