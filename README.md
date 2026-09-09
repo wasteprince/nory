@@ -19,6 +19,12 @@ Vue + Tauri · Linux · Windows 11 x64 · Xray + sing-box · Mihomo
 
 ![Интерфейс NORY: подключение, подписка и карточки серверов](docs/previews/home.png)
 
+## Новое в 0.3.3
+
+Если провайдер передаёт узел как «Париж | …» без emoji, NORY определяет город
+и показывает флаг в карточке выбранного сервера и в сетке. Linux использует
+системный emoji-шрифт, Windows — встроенный PNG-набор.
+
 ## Новое в 0.3.2
 
 Исправлен запуск TUN на Windows 11: отключённый Wintun-интерфейс теперь
@@ -50,7 +56,7 @@ Vue + Tauri · Linux · Windows 11 x64 · Xray + sing-box · Mihomo
 Для Windows 11 используется WebView2 вместо старого GTK-runtime; флаги включены
 в приложение только для Windows. Xray TUN запрашивает подтверждение администратора
 через UAC на время работы клиента; интерфейс остаётся с обычными правами.
-Все три канала — **arch, debian, windows** — получают стабильную версию 0.3.2.
+Все три канала — **arch, debian, windows** — получают стабильную версию 0.3.3.
 [Особенности Windows и ограничения](WINDOWS.md).
 Реальные VPN-соединения и работа TUN на настоящей Windows 11 в этом выпуске не тестировались.
 
@@ -73,9 +79,9 @@ NORY — настольное приложение с Rust-бэкендом и �
 
 | Система | Файл | Установка из папки с пакетом |
 | --- | --- | --- |
-| Arch Linux, x86_64 | `nory-…-x86_64.pkg.tar.zst` | `sudo pacman -U ./nory-0.3.2-1-x86_64.pkg.tar.zst` |
-| Ubuntu 24.04+ / Debian 13+, amd64 | `nory_…_amd64.deb` | `sudo apt install ./nory_0.3.2_amd64.deb` |
-| Windows 11 x64 | `NORY-0.3.2-windows-x64-setup.exe` | Запустить установщик |
+| Arch Linux, x86_64 | `nory-…-x86_64.pkg.tar.zst` | `sudo pacman -U ./nory-0.3.3-1-x86_64.pkg.tar.zst` |
+| Ubuntu 24.04+ / Debian 13+, amd64 | `nory_…_amd64.deb` | `sudo apt install ./nory_0.3.3_amd64.deb` |
+| Windows 11 x64 | `NORY-0.3.3-windows-x64-setup.exe` | Запустить установщик |
 
 Перед ручным обновлением закройте NORY через трей. Для Linux нужны systemd,
 WebKitGTK 4.1, GTK3 и агент авторизации polkit. `.deb` требует glibc 2.39:
