@@ -1,4 +1,5 @@
-//! UI-independent desktop actions. Secrets remain in Rust, not in the WebView.
+//! UI-independent desktop actions. Snapshots omit credentials; server JSON and
+//! subscription URLs are exposed only through explicit, targeted requests.
 use crate::{
     app_updater, applications, core::CoreManager, models::*, privileged, storage, subscription,
 };
@@ -40,7 +41,7 @@ pub enum Action {
     AddSubscription { url: String, send_hwid: bool },
     RefreshSubscription { id: Uuid },
     SubscriptionUrl { id: Uuid },
-    SubscriptionJson { id: Uuid },
+    ProfileJson { id: Uuid },
     ChangeSubscriptionUrl { id: Uuid, url: String },
     DeleteSubscription { id: Uuid },
     ImportLinks { text: String },
@@ -353,25 +354,21 @@ impl Desktop {
                     .context("Подписка удалена")?;
                 return Ok(json!({"id": id, "name": sub.name, "url": sub.url}));
             }
-            Action::SubscriptionJson { id } => {
-                let data = self.data.lock().unwrap_or_else(|p| p.into_inner());
-                let sub = data
-                    .subscriptions
+            Action::ProfileJson { id } => {
+                let profile = self
+                    .data
+                    .lock()
+                    .unwrap_or_else(|p| p.into_inner())
+                    .profiles
                     .iter()
-                    .find(|s| s.id == id)
-                    .context("Подписка удалена")?;
-                let original = sub.source_json.is_some();
-                let document = sub.source_json.clone().unwrap_or_else(|| {
-                    json!(
-                        data.profiles
-                            .iter()
-                            .filter(|p| p.subscription_id == Some(id))
-                            .map(|p| p.raw_config.clone().unwrap_or_else(|| json!(p)))
-                            .collect::<Vec<_>>()
-                    )
-                });
-                return Ok(json!({"id": id, "name": sub.name, "original": original,
-                    "text": serde_json::to_string_pretty(&document)?}));
+                    .find(|p| p.id == id)
+                    .cloned()
+                    .context("Сервер больше не существует. Выберите его заново")?;
+                let document = crate::config::profile_json(&profile)?;
+                return Ok(
+                    json!({"id": id, "name": profile.name, "original": profile.raw_config.is_some(),
+                    "text": serde_json::to_string_pretty(&document)?}),
+                );
             }
             Action::ChangeSubscriptionUrl { id, url } => {
                 let _network = self.network_guard()?;

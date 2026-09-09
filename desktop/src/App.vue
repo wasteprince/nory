@@ -326,28 +326,31 @@ async function refreshSub() {
       "Подписка обновлена",
     );
 }
-async function openSubscriptionDetails(mode: "json" | "url") {
-  const sub = currentSub.value;
-  if (!sub) return;
+async function openDetails(mode: "json" | "url") {
+  const target = mode === "json" ? shownProfile.value : currentSub.value;
+  if (!target) return;
   const revision = ++subscriptionDialogRevision;
   subscriptionDialog.value = mode;
-  subscriptionDetails.value = { id: sub.id, name: sub.name };
+  subscriptionDetails.value = { id: target.id, name: target.name };
   subscriptionDialogLoading.value = true;
   subscriptionDialogError.value = "";
   editedUrl.value = "";
   try {
     const result = await request<NonNullable<typeof subscriptionDetails.value>>({
-      type: mode === "json" ? "subscription_json" : "subscription_url", id: sub.id,
+      type: mode === "json" ? "profile_json" : "subscription_url", id: target.id,
     });
     if (revision !== subscriptionDialogRevision) return;
     subscriptionDetails.value = result;
     editedUrl.value = result.url ?? "";
-    await nextTick();
-    document.querySelector<HTMLElement>("#edit-sub-url, #subscription-json")?.focus();
   } catch (e) {
     if (revision === subscriptionDialogRevision) subscriptionDialogError.value = String(e);
   } finally {
-    if (revision === subscriptionDialogRevision) subscriptionDialogLoading.value = false;
+    if (revision === subscriptionDialogRevision) {
+      subscriptionDialogLoading.value = false;
+      await nextTick();
+      if (revision === subscriptionDialogRevision)
+        document.querySelector<HTMLElement>("#edit-sub-url, #server-json")?.focus();
+    }
   }
 }
 function closeSubscriptionDetails() {
@@ -958,7 +961,12 @@ const fields: Record<
                   <span v-else-if="shownFlag?.kind === 'emoji'" class="selected-flag emoji">{{ shownFlag.value }}</span>
                   <Globe2 v-else :size="21" />
                   <h2>
-                    {{ shownName }}
+                    <button v-if="shownProfile" class="server-json-trigger"
+                      :aria-label="`Открыть JSON сервера: ${shownName}`" title="Посмотреть JSON сервера"
+                      @click="openDetails('json')">
+                      <span>{{ shownName }}</span><Braces :size="17" aria-hidden="true" />
+                    </button>
+                    <template v-else>{{ shownName }}</template>
                   </h2>
                 </div>
                 <p>
@@ -1066,13 +1074,8 @@ const fields: Record<
                     :class="{ spin: busy === 'refresh_subscription' }"
                   /></button>
                 <button v-if="currentSub" class="icon-button circle"
-                  title="JSON подписки" aria-label="JSON подписки"
-                  @click="openSubscriptionDetails('json')">
-                  <Braces :size="16" />
-                </button>
-                <button v-if="currentSub" class="icon-button circle"
                   title="Изменить ссылку подписки" aria-label="Изменить ссылку подписки"
-                  :disabled="working || status.network_busy" @click="openSubscriptionDetails('url')">
+                  :disabled="working || status.network_busy" @click="openDetails('url')">
                   <Link2 :size="16" />
                 </button
                 ><button
@@ -1532,7 +1535,7 @@ const fields: Record<
         role="dialog" aria-modal="true" aria-labelledby="subscription-details-title">
         <div class="modal-heading">
           <div>
-            <h2 id="subscription-details-title">{{ subscriptionDialog === 'json' ? 'JSON подписки' : 'Изменить ссылку' }}</h2>
+            <h2 id="subscription-details-title">{{ subscriptionDialog === 'json' ? 'JSON сервера' : 'Изменить ссылку' }}</h2>
             <p class="muted">{{ subscriptionDetails?.name }}</p>
           </div>
           <button class="icon-button" aria-label="Закрыть" :disabled="busy === 'change_subscription_url'"
@@ -1542,11 +1545,11 @@ const fields: Record<
         <p v-else-if="subscriptionDialogError" role="alert">{{ subscriptionDialogError }}</p>
         <template v-else-if="subscriptionDialog === 'json'">
           <p id="json-privacy" class="footnote mb-3">
-            {{ subscriptionDetails?.original ? 'Исходный JSON провайдера; изменено только форматирование.' : 'Сохранённые конфигурации, не исходный ответ. Если провайдер отдаёт JSON, обновите подписку, чтобы сохранить оригинал.' }}
+            {{ subscriptionDetails?.original ? 'Сохранённый JSON только этого сервера, включая его балансировщик, если он есть.' : 'JSON Xray сформирован из ссылки этого сервера. Это не исходный ответ провайдера.' }}
             Здесь могут быть пароли и ключи. Не публикуйте этот текст.
           </p>
-          <textarea id="subscription-json" class="json-content" :value="subscriptionDetails?.text"
-            readonly spellcheck="false" wrap="off" aria-label="Содержимое JSON подписки"
+          <textarea id="server-json" class="json-content" :value="subscriptionDetails?.text"
+            readonly spellcheck="false" wrap="off" aria-label="Содержимое JSON сервера"
             aria-describedby="json-privacy" />
           <p class="footnote">Только просмотр · Ctrl+A и Ctrl+C для копирования</p>
         </template>

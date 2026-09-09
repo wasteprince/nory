@@ -404,6 +404,16 @@
     line-height: 1.35;
     overflow-wrap: anywhere;
   }
+  .server-json-trigger {
+    @apply inline-flex max-w-full items-center gap-2.5 rounded-sm text-left;
+  }
+  .server-json-trigger > svg {
+    @apply shrink-0 text-muted;
+  }
+  .server-json-trigger:hover,
+  .server-json-trigger:hover > svg {
+    color: var(--accent-text);
+  }
   .selected-card > p {
     position: relative;
     z-index: 1;
@@ -547,7 +557,7 @@
   .profile-badges {
     @apply flex min-w-0 flex-wrap items-center gap-1.5;
   }
-  .json-modal {
+  .modal.json-modal {
     width: 900px;
   }
   .json-content {

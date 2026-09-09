@@ -5,6 +5,23 @@ use anyhow::{Result, bail};
 use serde_json::{Value, json};
 use std::collections::HashSet;
 
+/// Export one saved server, without the subscription or runtime TUN settings.
+/// Native JSON may contain several outbounds and a balancer: keep them together.
+pub fn profile_json(profile: &Profile) -> Result<Value> {
+    if let Some(raw) = &profile.raw_config {
+        return Ok(raw.clone());
+    }
+    let mut proxy = outbound(profile, &Settings::default())?;
+    // This routing mark is injected by NORY at runtime, not supplied by the link.
+    if let Some(stream) = proxy
+        .get_mut("streamSettings")
+        .and_then(Value::as_object_mut)
+    {
+        stream.remove("sockopt");
+    }
+    Ok(json!({ "remarks": profile.name, "outbounds": [proxy] }))
+}
+
 pub fn build_xray_config(profile: &Profile, settings: &Settings) -> Result<Value> {
     validate_ports(settings)?;
     if let Some(raw) = &profile.raw_config {
