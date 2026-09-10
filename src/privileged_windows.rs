@@ -63,6 +63,13 @@ pub fn cleanup_tun() -> Result<()> {
     windows_service::call(&Request::Stop)
 }
 
+pub(crate) fn tunnel_alive(name: &str) -> Result<bool> {
+    if crate::windows::interface_row(name).is_err() {
+        return Ok(false);
+    }
+    windows_service::tunnel_alive(name)
+}
+
 pub fn run_helper(command: &str) -> Result<()> {
     if command == "authorize-xray" {
         let pid = std::env::args()

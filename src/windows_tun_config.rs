@@ -61,7 +61,7 @@ pub(crate) fn sing_box_config(
     // sing-box 1.13 rejects detour="direct" when that outbound has no dial
     // options. Keep the direct outbound for process bypass rules, not DNS.
     Ok(json!({
-        "log": { "level": "warn", "timestamp": true },
+        "log": { "level": "info", "timestamp": true },
         "dns": { "servers": [{
             "type": "udp", "tag": "dns-direct", "server": "1.1.1.1",
             "server_port": 53

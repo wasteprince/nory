@@ -18,6 +18,36 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
 
 const MAX_LOG_LINES: usize = 1_000;
+const TUN_CHECK_INTERVAL: Duration = Duration::from_secs(2);
+const TUN_LOSS_GRACE: Duration = Duration::from_secs(3);
+
+#[derive(Default)]
+struct TunHealth {
+    checked_at: Option<Instant>,
+    missing_since: Option<Instant>,
+}
+
+impl TunHealth {
+    fn check(&mut self, now: Instant, probe: impl FnOnce() -> Result<bool>) -> bool {
+        if self
+            .checked_at
+            .is_some_and(|at| now.duration_since(at) < TUN_CHECK_INTERVAL)
+        {
+            return false;
+        }
+        self.checked_at = Some(now);
+        match probe() {
+            Ok(true) => self.missing_since = None,
+            Ok(false) => {
+                let since = self.missing_since.get_or_insert(now);
+                return now.duration_since(*since) >= TUN_LOSS_GRACE;
+            }
+            // A timeout is not a second observation of an absent adapter.
+            Err(_) => self.missing_since = None,
+        }
+        false
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct LogEntry {
@@ -58,6 +88,7 @@ struct CoreState {
     status: ConnectionStatus,
     api_port: u16,
     generation: u64,
+    tun_health: TunHealth,
 }
 
 pub struct CoreManager {
@@ -78,6 +109,7 @@ impl CoreManager {
                 status: ConnectionStatus::default(),
                 api_port: 10085,
                 generation: 0,
+                tun_health: TunHealth::default(),
             }),
             logs: Arc::new(Mutex::new(VecDeque::with_capacity(MAX_LOG_LINES))),
             log_revision: Arc::new(AtomicU64::new(0)),
@@ -125,7 +157,15 @@ impl CoreManager {
             });
         }
 
-        match self.start(installation, profile, settings) {
+        let result = self
+            .start(installation, profile, settings)
+            .and_then(|mut running| {
+                // TUN can die while Xray validates its config or opens SOCKS.
+                // Recheck both owners before publishing Connected.
+                verify_xray_tunnel(&mut running, &tun_interface, privileged::tunnel_alive)?;
+                Ok(running)
+            });
+        match result {
             Ok(running) => {
                 let mut state = self
                     .state
@@ -227,6 +267,7 @@ impl CoreManager {
             .lock()
             .map_err(|_| anyhow::anyhow!("внутренняя ошибка состояния"))?;
         state.generation = state.generation.wrapping_add(1);
+        state.tun_health = TunHealth::default();
         state.status = ConnectionStatus {
             phase: ConnectionPhase::Connecting,
             profile_id: Some(profile.id),
@@ -488,6 +529,21 @@ impl CoreManager {
     }
 
     pub fn status(&self) -> ConnectionStatus {
+        self.status_with_tunnel_check(privileged::tunnel_alive)
+    }
+
+    fn status_with_tunnel_check(
+        &self,
+        check: impl FnOnce(&str) -> Result<bool>,
+    ) -> ConnectionStatus {
+        self.status_with_tunnel_check_at(Instant::now(), check)
+    }
+
+    fn status_with_tunnel_check_at(
+        &self,
+        now: Instant,
+        check: impl FnOnce(&str) -> Result<bool>,
+    ) -> ConnectionStatus {
         let Ok(mut state) = self.state.lock() else {
             return ConnectionStatus {
                 phase: ConnectionPhase::Error,
@@ -495,6 +551,7 @@ impl CoreManager {
                 ..ConnectionStatus::default()
             };
         };
+        let previous_phase = state.status.phase;
         if let Some(RunningBackend::Xray {
             process: Some(process),
             ..
@@ -505,30 +562,23 @@ impl CoreManager {
                 *process = None;
             }
             state.status.phase = ConnectionPhase::Error;
+            state.status.started_at = None;
             state.status.error = Some(format!("Xray неожиданно завершился ({exit})"));
         }
-        #[cfg(target_os = "linux")]
-        if let Some(RunningBackend::Mihomo { tun_interface }) = state.backend.as_ref()
-            && !std::path::Path::new("/sys/class/net")
-                .join(tun_interface)
-                .exists()
-        {
-            state.backend = None;
-            state.status.phase = ConnectionPhase::Error;
-            state.status.error = Some("Mihomo неожиданно завершился".into());
-        }
-        #[cfg(target_os = "windows")]
         if let Some(backend) = state.backend.as_ref() {
             let (RunningBackend::Xray { tun_interface, .. }
             | RunningBackend::Mihomo { tun_interface }) = backend;
+            let tun_interface = tun_interface.clone();
             if state.status.phase == ConnectionPhase::Connected
-                // A registered adapter can outlive its process, and conversely
-                // Wintun can report Down with a live session. Ask its owner;
-                // a transient RPC error is not proof the tunnel has stopped.
-                && (matches!(crate::windows_service::tunnel_alive(tun_interface), Ok(false))
-                    || crate::windows::interface_row(tun_interface).is_err())
+                // Monitor the helper-owned TUN as well as Xray on both OSes.
+                // Keep ownership for disconnect/retry; a transient RPC failure
+                // alone is not evidence that the tunnel has stopped.
+                // Network changes can briefly recreate an adapter. Share the
+                // probe across tray/UI/retry callers and confirm sustained loss.
+                && state.tun_health.check(now, || check(&tun_interface))
             {
                 state.status.phase = ConnectionPhase::Error;
+                state.status.started_at = None;
                 state.status.error = Some(
                     "TUN-интерфейс неожиданно остановлен. Попробуйте подключиться ещё раз".into(),
                 );
@@ -536,6 +586,11 @@ impl CoreManager {
         }
         let status = state.status.clone();
         drop(state);
+        if previous_phase != ConnectionPhase::Error && status.phase == ConnectionPhase::Error {
+            if let Some(error) = &status.error {
+                self.push_log("error", error.clone());
+            }
+        }
         status
     }
 
@@ -611,6 +666,21 @@ impl CoreManager {
     pub(crate) fn push_log(&self, level: &str, message: String) {
         push_log(&self.logs, &self.log_revision, level, redact(&message));
     }
+}
+
+fn verify_xray_tunnel(
+    running: &mut RunningCore,
+    interface: &str,
+    check: impl FnOnce(&str) -> Result<bool>,
+) -> Result<()> {
+    if !check(interface).context("Не удалось подтвердить готовность TUN sing-box для Xray")?
+    {
+        bail!("TUN sing-box остановлен во время запуска Xray. Попробуйте подключиться ещё раз");
+    }
+    if let Some(exit) = running.child.try_wait()? {
+        bail!("Xray завершился при запуске ({exit})");
+    }
+    Ok(())
 }
 
 fn disconnect_status(previous: ConnectionStatus, result: &Result<()>) -> ConnectionStatus {
@@ -882,4 +952,167 @@ pub fn profile_by_id(profiles: &[Profile], id: Uuid) -> Result<&Profile> {
         .iter()
         .find(|profile| profile.id == id)
         .context("профиль не найден")
+}
+
+#[cfg(all(test, target_os = "linux"))]
+mod tun_health_tests {
+    use super::*;
+
+    struct TestManager(CoreManager);
+    impl std::ops::Deref for TestManager {
+        type Target = CoreManager;
+        fn deref(&self) -> &CoreManager {
+            &self.0
+        }
+    }
+    impl Drop for TestManager {
+        fn drop(&mut self) {
+            let _ = self.0.disconnect_with_cleanup(|| Ok(()));
+        }
+    }
+
+    fn test_manager(root: &std::path::Path) -> TestManager {
+        TestManager(CoreManager::new(Paths {
+            config_dir: root.join("config"),
+            data_dir: root.join("data"),
+            cache_dir: root.join("cache"),
+            runtime_dir: root.join("runtime"),
+        }))
+    }
+
+    fn running() -> RunningCore {
+        RunningCore {
+            child: Command::new("/usr/bin/sleep").arg("30").spawn().unwrap(),
+        }
+    }
+
+    #[test]
+    fn xray_startup_requires_live_tun_and_xray() {
+        let mut process = running();
+        assert!(verify_xray_tunnel(&mut process, "test-only", |_| Ok(false)).is_err());
+        assert!(
+            verify_xray_tunnel(&mut process, "test-only", |_| bail!("helper unavailable")).is_err()
+        );
+        assert!(verify_xray_tunnel(&mut process, "test-only", |_| Ok(true)).is_ok());
+        process.child.kill().unwrap();
+        process.child.wait().unwrap();
+        assert!(verify_xray_tunnel(&mut process, "test-only", |_| Ok(true)).is_err());
+    }
+
+    #[test]
+    fn lost_tun_with_live_xray_reports_error_and_remains_owned_for_cleanup() {
+        let temp = tempfile::tempdir().unwrap();
+        let manager = test_manager(temp.path());
+        {
+            let mut state = manager.state.lock().unwrap();
+            state.backend = Some(RunningBackend::Xray {
+                process: Some(running()),
+                tun_interface: "test-only".into(),
+            });
+            state.status.mode = Some(ConnectionMode::Tun);
+            state.status.phase = ConnectionPhase::Connected;
+            state.status.started_at = Some(Instant::now());
+        }
+        let now = Instant::now();
+        assert_eq!(
+            manager.status_with_tunnel_check_at(now, |_| Ok(true)).phase,
+            ConnectionPhase::Connected
+        );
+        assert_eq!(
+            manager
+                .status_with_tunnel_check_at(now + Duration::from_secs(2), |_| bail!(
+                    "temporary RPC timeout"
+                ))
+                .phase,
+            ConnectionPhase::Connected
+        );
+        assert_eq!(
+            manager
+                .status_with_tunnel_check_at(now + Duration::from_secs(4), privileged::tunnel_alive)
+                .phase,
+            ConnectionPhase::Connected
+        );
+        let status = manager
+            .status_with_tunnel_check_at(now + Duration::from_secs(8), privileged::tunnel_alive);
+        assert_eq!(status.phase, ConnectionPhase::Error);
+        assert!(status.error.unwrap().contains("TUN"));
+        assert!(status.started_at.is_none());
+        assert!(manager.needs_disconnect());
+        assert!(manager.state.lock().unwrap().backend.is_some());
+        assert!(
+            manager
+                .disconnect_with_cleanup(|| bail!("temporary cleanup timeout"))
+                .is_err()
+        );
+        assert!(manager.needs_disconnect());
+        assert_eq!(
+            manager.disconnect_with_cleanup(|| Ok(())).unwrap().phase,
+            ConnectionPhase::Disconnected
+        );
+        assert!(!manager.needs_disconnect());
+    }
+
+    #[test]
+    fn connecting_does_not_poll_partially_started_tun() {
+        let temp = tempfile::tempdir().unwrap();
+        let manager = test_manager(temp.path());
+        {
+            let mut state = manager.state.lock().unwrap();
+            state.backend = Some(RunningBackend::Xray {
+                process: None,
+                tun_interface: "test-only".into(),
+            });
+            state.status.phase = ConnectionPhase::Connecting;
+        }
+        assert_eq!(
+            manager
+                .status_with_tunnel_check(|_| panic!("startup owns readiness checks"))
+                .phase,
+            ConnectionPhase::Connecting
+        );
+        // Clear the synthetic backend before Drop, which otherwise contacts
+        // the installed helper and can disconnect the developer's real VPN.
+        manager.disconnect_with_cleanup(|| Ok(())).unwrap();
+    }
+}
+
+#[cfg(test)]
+mod tun_health_timing_tests {
+    use super::*;
+
+    #[test]
+    fn ui_tray_and_reconnect_share_one_probe() {
+        let now = Instant::now();
+        let mut health = TunHealth::default();
+        assert!(!health.check(now, || Ok(true)));
+        for millis in [0, 100, 500, 1000, 1999] {
+            assert!(
+                !health.check(now + Duration::from_millis(millis), || panic!(
+                    "duplicate probe"
+                ))
+            );
+        }
+        assert!(!health.check(now + TUN_CHECK_INTERVAL, || Ok(true)));
+    }
+
+    #[test]
+    fn interface_recreation_recovers_without_disconnect() {
+        let now = Instant::now();
+        let mut health = TunHealth::default();
+        assert!(!health.check(now, || Ok(false)));
+        assert!(!health.check(now + Duration::from_secs(2), || Ok(true)));
+        assert!(!health.check(now + Duration::from_secs(4), || Ok(false)));
+        assert!(!health.check(now + Duration::from_secs(6), || Ok(false)));
+        assert!(health.check(now + Duration::from_secs(8), || Ok(false)));
+    }
+
+    #[test]
+    fn rpc_timeout_does_not_confirm_adapter_loss() {
+        let now = Instant::now();
+        let mut health = TunHealth::default();
+        assert!(!health.check(now, || Ok(false)));
+        assert!(!health.check(now + Duration::from_secs(4), || bail!("timeout")));
+        assert!(!health.check(now + Duration::from_secs(6), || Ok(false)));
+        assert!(!health.check(now + Duration::from_secs(8), || Ok(true)));
+    }
 }

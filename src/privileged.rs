@@ -1,4 +1,5 @@
 use crate::mihomo::{self, MihomoInstallation};
+use crate::process::SingBoxStartup;
 use crate::singbox_updater::{self, SingBoxInstallation};
 use crate::storage::Paths;
 use crate::updater::{self, CoreInstallation};
@@ -9,7 +10,7 @@ use serde_json::{Value, json};
 use std::collections::BTreeSet;
 use std::fs::{self, OpenOptions};
 use std::io::{BufRead, BufReader, Read, Write};
-use std::os::fd::FromRawFd;
+use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
 use std::os::unix::fs::{MetadataExt, OpenOptionsExt, PermissionsExt};
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::{Path, PathBuf};
@@ -31,10 +32,58 @@ struct HelperResponse {
     ok: bool,
     version: Option<String>,
     error: Option<String>,
+    #[serde(default)]
+    interface: Option<String>,
 }
 
 struct TunRuntime {
     child: Child,
+    interface: String,
+    owner: Option<TunOwner>,
+}
+
+struct TunOwner {
+    pid: u32,
+    process: OwnedFd,
+}
+
+impl TunOwner {
+    fn new(pid: u32) -> Result<Self> {
+        // A pidfd pins the original process identity even after PID reuse.
+        let fd = unsafe { libc::syscall(libc::SYS_pidfd_open, pid, 0) };
+        if fd < 0 {
+            return Err(std::io::Error::last_os_error())
+                .context("Не удалось определить владельца VPN");
+        }
+        Ok(Self {
+            pid,
+            process: unsafe { OwnedFd::from_raw_fd(fd as i32) },
+        })
+    }
+
+    fn require_control(&self, pid: u32) -> Result<()> {
+        let mut poll = libc::pollfd {
+            fd: self.process.as_raw_fd(),
+            events: libc::POLLIN,
+            revents: 0,
+        };
+        let result = unsafe { libc::poll(&mut poll, 1, 0) };
+        if result < 0 {
+            return Err(std::io::Error::last_os_error())
+                .context("Не удалось проверить владельца VPN");
+        }
+        if pid != self.pid && poll.revents & libc::POLLIN == 0 {
+            bail!("VPN уже запущен в другом процессе NORY. Отключите его в том окне");
+        }
+        Ok(())
+    }
+}
+
+impl TunRuntime {
+    fn alive(&mut self) -> Result<bool> {
+        Ok(self.child.try_wait()?.is_none()
+            && Path::new("/sys/class/net").join(&self.interface).exists())
+    }
 }
 
 struct SystemCoreInstallations {
@@ -124,6 +173,14 @@ pub fn cleanup_tun() -> Result<()> {
     Ok(())
 }
 
+pub(crate) fn tunnel_alive(name: &str) -> Result<bool> {
+    if !valid_interface_name(name) || !Path::new("/sys/class/net").join(name).exists() {
+        return Ok(false);
+    }
+    let response = send_helper_request("tun-status", Duration::from_secs(1))?;
+    Ok(response.interface.as_deref() == Some(name))
+}
+
 pub fn configure_mihomo(config: &Value) -> Result<String> {
     let name = config["tun"]["device"].as_str().context("Нет имени TUN")?;
     let bytes = serde_json::to_vec(config)?;
@@ -209,15 +266,38 @@ fn helper_serve() -> Result<()> {
 }
 
 fn handle_client(mut stream: UnixStream, tun_runtime: &mut Option<TunRuntime>) {
+    let mut interface = None;
     let response = (|| -> Result<Option<String>> {
-        let uid = peer_uid(&stream)?;
-        verify_authorized(uid)?;
+        let peer = peer_credentials(&stream)?;
+        verify_authorized(peer.uid)?;
+        let pid = u32::try_from(peer.pid).context("Некорректный процесс клиента NORY")?;
         let mut request = String::new();
         BufReader::new(stream.try_clone()?)
             .take(MAX_REQUEST_BYTES as u64)
             .read_line(&mut request)?;
         let parts = request.split_whitespace().collect::<Vec<_>>();
+        if matches!(
+            parts.first().copied(),
+            Some("tun-up" | "tun-down" | "mihomo-up")
+        ) {
+            if let Some(owner) = tun_runtime
+                .as_ref()
+                .and_then(|runtime| runtime.owner.as_ref())
+            {
+                owner.require_control(pid)?;
+            }
+            // Record only the action and process, never configuration/credentials.
+            eprintln!("NORY helper: {} requested by pid {pid}", parts[0]);
+        }
         match parts.as_slice() {
+            ["tun-status"] => {
+                if let Some(runtime) = tun_runtime.as_mut()
+                    && runtime.alive()?
+                {
+                    interface = Some(runtime.interface.clone());
+                }
+                Ok(None)
+            }
             ["status"] => {
                 let installations = bundled_system_cores()?;
                 Ok(Some(format!(
@@ -235,6 +315,7 @@ fn handle_client(mut stream: UnixStream, tun_runtime: &mut Option<TunRuntime>) {
                     .parse::<u16>()
                     .context("некорректный SOCKS-порт")?;
                 let matchers = decode_process_matchers(encoded)?;
+                let owner = TunOwner::new(pid)?;
                 start_sing_box(
                     tun_runtime,
                     name,
@@ -244,6 +325,7 @@ fn handle_client(mut stream: UnixStream, tun_runtime: &mut Option<TunRuntime>) {
                     socks_port,
                     &matchers,
                 )?;
+                tun_runtime.as_mut().context("TUN не запущен")?.owner = Some(owner);
                 Ok(None)
             }
             ["tun-down"] => {
@@ -260,7 +342,9 @@ fn handle_client(mut stream: UnixStream, tun_runtime: &mut Option<TunRuntime>) {
                 }
                 let config: Value =
                     serde_json::from_slice(&bytes).context("некорректная конфигурация Mihomo")?;
+                let owner = TunOwner::new(pid)?;
                 start_mihomo(tun_runtime, &config)?;
+                tun_runtime.as_mut().context("TUN не запущен")?.owner = Some(owner);
                 Ok(None)
             }
             _ => bail!("неподдерживаемый запрос"),
@@ -271,11 +355,13 @@ fn handle_client(mut stream: UnixStream, tun_runtime: &mut Option<TunRuntime>) {
             ok: true,
             version,
             error: None,
+            interface,
         },
         Err(error) => HelperResponse {
             ok: false,
             version: None,
             error: Some(error.to_string()),
+            interface: None,
         },
     };
     if let Ok(json) = serde_json::to_string(&payload) {
@@ -366,33 +452,36 @@ fn start_sing_box(
         .current_dir(&sing_box.directory)
         .stdin(Stdio::null())
         .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
+        .stderr(Stdio::piped())
         .spawn()
         .context("не удалось запустить sing-box")?;
-    for _ in 0..60 {
-        match child.try_wait() {
-            Ok(Some(status)) => {
-                cleanup_tun_routes();
-                bail!("sing-box завершился при запуске ({status})");
+    let result = (|| -> Result<()> {
+        let stderr = child
+            .stderr
+            .take()
+            .context("нет журнала запуска sing-box")?;
+        let startup = SingBoxStartup::capture(stderr, std::io::stderr())?;
+        for _ in 0..200 {
+            if startup.ready(&mut child, Path::new("/sys/class/net").join(name).exists())? {
+                return Ok(());
             }
-            Ok(None) => {}
-            Err(error) => {
-                let _ = child.kill();
-                let _ = child.wait();
-                cleanup_tun_routes();
-                return Err(error).context("не удалось проверить состояние sing-box");
-            }
+            std::thread::sleep(Duration::from_millis(50));
         }
-        if Path::new("/sys/class/net").join(name).exists() {
-            *runtime = Some(TunRuntime { child });
-            return Ok(());
-        }
-        std::thread::sleep(Duration::from_millis(50));
+        bail!("sing-box не подтвердил готовность TUN-интерфейса {name} за 10 секунд")
+    })();
+    if let Err(error) = result {
+        let _ = child.kill();
+        let _ = child.wait();
+        cleanup_tun_routes();
+        return Err(error)
+            .context("Не удалось запустить TUN sing-box; подробности в журнале nory-helper");
     }
-    let _ = child.kill();
-    let _ = child.wait();
-    cleanup_tun_routes();
-    bail!("TUN-интерфейс {name} не появился после запуска sing-box")
+    *runtime = Some(TunRuntime {
+        child,
+        interface: name.into(),
+        owner: None,
+    });
+    Ok(())
 }
 
 fn start_mihomo(runtime: &mut Option<TunRuntime>, config: &Value) -> Result<()> {
@@ -462,7 +551,11 @@ fn start_mihomo(runtime: &mut Option<TunRuntime>, config: &Value) -> Result<()> 
             }
         }
         if Path::new("/sys/class/net").join(interface).exists() {
-            *runtime = Some(TunRuntime { child });
+            *runtime = Some(TunRuntime {
+                child,
+                interface: interface.into(),
+                owner: None,
+            });
             return Ok(());
         }
         std::thread::sleep(Duration::from_millis(50));
@@ -751,6 +844,10 @@ fn stop_tun_runtime(runtime: &mut Option<TunRuntime>) {
     let Some(mut runtime) = runtime.take() else {
         return;
     };
+    // Health polling may already have reaped this child; its PID can be reused.
+    if matches!(runtime.child.try_wait(), Ok(Some(_))) {
+        return;
+    }
     // SAFETY: the PID belongs to the child process owned by this helper.
     let _ = unsafe { libc::kill(runtime.child.id() as i32, libc::SIGTERM) };
     for _ in 0..30 {
@@ -831,7 +928,7 @@ fn bind_fallback_socket() -> Result<UnixListener> {
     Ok(listener)
 }
 
-fn peer_uid(stream: &UnixStream) -> Result<u32> {
+fn peer_credentials(stream: &UnixStream) -> Result<libc::ucred> {
     let mut credentials = libc::ucred {
         pid: 0,
         uid: 0,
@@ -851,7 +948,7 @@ fn peer_uid(stream: &UnixStream) -> Result<u32> {
     if result != 0 {
         return Err(std::io::Error::last_os_error().into());
     }
-    Ok(credentials.uid)
+    Ok(credentials)
 }
 
 fn invoking_uid() -> Result<u32> {
@@ -867,4 +964,57 @@ fn require_root() -> Result<()> {
         bail!("helper должен работать от root");
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tun_health_tests {
+    use super::*;
+
+    #[test]
+    fn helper_does_not_report_a_surviving_adapter_as_a_live_session() {
+        let mut runtime = TunRuntime {
+            child: Command::new("/usr/bin/true").spawn().unwrap(),
+            interface: "lo".into(),
+            owner: None,
+        };
+        runtime.child.wait().unwrap();
+        assert!(!runtime.alive().unwrap());
+    }
+
+    #[test]
+    fn helper_requires_the_owned_interface() {
+        let mut runtime = TunRuntime {
+            child: Command::new("/usr/bin/sleep").arg("30").spawn().unwrap(),
+            interface: "test-only".into(),
+            owner: None,
+        };
+        let missing = runtime.alive().unwrap();
+        runtime.interface = "lo".into();
+        let alive = runtime.alive().unwrap();
+        runtime.child.kill().unwrap();
+        runtime.child.wait().unwrap();
+        assert!(!missing);
+        assert!(alive);
+    }
+}
+
+#[cfg(test)]
+mod tun_owner_tests {
+    use super::*;
+
+    #[test]
+    fn another_live_process_cannot_stop_or_replace_tunnel() {
+        let pid = std::process::id();
+        let owner = TunOwner::new(pid).unwrap();
+        assert!(owner.require_control(pid).is_ok());
+        assert!(owner.require_control(pid.wrapping_add(1)).is_err());
+    }
+
+    #[test]
+    fn next_client_can_reclaim_tunnel_after_owner_exit() {
+        let mut child = Command::new("/usr/bin/true").spawn().unwrap();
+        let owner = TunOwner::new(child.id()).unwrap();
+        child.wait().unwrap();
+        assert!(owner.require_control(std::process::id()).is_ok());
+    }
 }

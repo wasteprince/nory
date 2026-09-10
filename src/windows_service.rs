@@ -3,7 +3,7 @@
 //! RPC accepts configurations, not commands or executable/configuration paths.
 use crate::{
     privileged,
-    process::hide_window,
+    process::{SingBoxStartup, hide_window},
     windows::{self, OwnedHandle, ProcessJob, wide},
 };
 use anyhow::{Context, Result, bail};
@@ -167,7 +167,6 @@ fn verify_service_pid(pid: u32) -> Result<()> {
 }
 
 fn read_message(pipe: &mut File, deadline: Instant) -> Result<Vec<u8>> {
-    let mut bytes = vec![0; MAX_MESSAGE];
     loop {
         let mut available = 0;
         if unsafe {
@@ -187,6 +186,9 @@ fn read_message(pipe: &mut File, deadline: Instant) -> Result<Vec<u8>> {
             bail!("Слишком большое сообщение службы NORY");
         }
         if available > 0 {
+            // Status replies are only a few bytes. Avoid zeroing a 2 MiB
+            // buffer in both processes on every UI/tray health request.
+            let mut bytes = vec![0; available as usize];
             match pipe.read(&mut bytes) {
                 Ok(0) => {}
                 Ok(size) => {
@@ -906,7 +908,11 @@ impl Session {
         let job = ProcessJob::new()?;
         let mut child = command(false)
             .stdout(log.try_clone()?)
-            .stderr(log)
+            .stderr(if mihomo {
+                Stdio::from(log.try_clone()?)
+            } else {
+                Stdio::piped()
+            })
             .spawn()
             .context("Не удалось запустить TUN-ядро")?;
         if let Err(error) = job.attach(&child) {
@@ -923,6 +929,16 @@ impl Session {
             luid: None,
             config_path,
         };
+        let startup = if mihomo {
+            None
+        } else {
+            let stderr = session
+                .child
+                .stderr
+                .take()
+                .context("Нет журнала запуска sing-box")?;
+            Some(SingBoxStartup::capture(stderr, log)?)
+        };
         let deadline = Instant::now() + Duration::from_secs(10);
         while Instant::now() < deadline && !STOPPING.load(Ordering::Acquire) {
             if session.finished() {
@@ -932,16 +948,21 @@ impl Session {
             }
             if let Ok(row) = windows::interface_row(interface) {
                 session.luid = Some(unsafe { row.InterfaceLuid.Value });
-                // Wintun is a layer-3 adapter. Windows may report its media
-                // state as Down/Unknown while sing-box already owns the
-                // Wintun session and is processing packets. Requiring
-                // OperStatus=Up here incorrectly killed a valid tunnel after
-                // the interface had been created.
-                return Ok(session);
+                // Wintun may report Down/Unknown for a live session, or leave
+                // a registered adapter after exit. Wait for this sing-box
+                // process to finish startup instead of trusting adapter state.
+                if startup
+                    .as_ref()
+                    .map_or(Ok(true), |startup| startup.ready(&mut session.child, true))?
+                {
+                    return Ok(session);
+                }
             }
             std::thread::sleep(Duration::from_millis(50));
         }
-        bail!("Ошибка подключения: TUN не создан. Проверьте драйвер Wintun или попробуйте ещё раз")
+        bail!(
+            "Ошибка подключения: TUN не готов. Подробности: C:\\ProgramData\\NORY\\runtime\\core.log"
+        )
     }
 
     fn finished(&mut self) -> bool {

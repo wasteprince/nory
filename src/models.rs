@@ -164,9 +164,9 @@ impl Default for Settings {
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PingType {
-    #[default]
     Proxy,
     Tcp,
+    #[default]
     Icmp,
 }
 

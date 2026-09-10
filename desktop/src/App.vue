@@ -57,6 +57,7 @@ import {
 } from "./api";
 import { bytes, duration, date, cleanName, flag } from "./format";
 import { mergeSettingsDraft } from "./settings";
+import { visibilityPoller } from "./polling";
 import { isEditing, subscriptionFromPaste } from "./clipboard";
 import type { Settings, Log, CatalogItem } from "./types";
 import Toggle from "./Toggle.vue";
@@ -201,9 +202,21 @@ const reconnectMessage = () =>
   nowConnected.value
     ? "Правила сохранены. VPN перезапущен"
     : "Правила сохранены";
-let stopped = false,
-  timer: ReturnType<typeof setTimeout> | undefined,
-  unlisteners: UnlistenFn[] = [];
+let unlisteners: UnlistenFn[] = [];
+let nativeVisible = true, snapshotDirty = false;
+const uiPoller = visibilityPoller(async () => {
+  if (snapshotDirty) {
+    await refresh();
+    snapshotDirty = false;
+  }
+  const revision = status.value.logs_revision;
+  await poll();
+  if (page.value === "logs" && revision !== status.value.logs_revision)
+    await loadLogs();
+}, () => Math.max(1000, Number(snapshot.value?.settings.traffic_refresh_seconds ?? 1) * 1000));
+function updateVisibility() {
+  uiPoller.setVisible(nativeVisible && !document.hidden);
+}
 let catalogRevision = 0;
 
 async function start() {
@@ -218,22 +231,6 @@ async function start() {
   } finally {
     loading.value = false;
   }
-}
-async function tick() {
-  try {
-    const revision = status.value.logs_revision;
-    await poll();
-    if (page.value === "logs" && revision !== status.value.logs_revision)
-      await loadLogs();
-  } catch {}
-  if (!stopped)
-    timer = setTimeout(
-      tick,
-      Math.max(
-        1000,
-        Number(snapshot.value?.settings.traffic_refresh_seconds ?? 1) * 1000,
-      ),
-    );
 }
 onMounted(async () => {
   await start();
@@ -259,9 +256,14 @@ onMounted(async () => {
     );
     unlisteners.push(
       await listen("data-changed", () => {
-        void refresh().catch((e) => notice(String(e), true));
+        if (!nativeVisible || document.hidden) snapshotDirty = true;
+        else void refresh().catch((e) => notice(String(e), true));
       }),
     );
+    unlisteners.push(await listen<boolean>("window-visibility", (e) => {
+      nativeVisible = e.payload;
+      updateVisibility();
+    }));
     unlisteners.push(
       await listen<{ received?: number; total?: number; verifying?: boolean }>(
         "update-progress",
@@ -272,13 +274,16 @@ onMounted(async () => {
         },
       ),
     );
-    timer = setTimeout(tick, 1000);
+    nativeVisible = await getCurrentWindow().isVisible();
+    document.addEventListener("visibilitychange", updateVisibility);
+    updateVisibility();
+    uiPoller.start();
   }
 });
 onBeforeUnmount(() => {
   document.removeEventListener("paste", pasteSubscription);
-  stopped = true;
-  clearTimeout(timer);
+  uiPoller.stop();
+  document.removeEventListener("visibilitychange", updateVisibility);
   unlisteners.forEach((f) => f());
 });
 watch(
@@ -305,6 +310,8 @@ async function connect() {
   ) {
     try {
       await getCurrentWindow().hide();
+      nativeVisible = false;
+      updateVisibility();
     } catch (e) {
       notice(String(e), true);
     }
@@ -899,7 +906,7 @@ const fields: Record<
         <button class="button primary" @click="start">Повторить</button>
       </div>
       <template v-else-if="snapshot">
-        <section v-show="page === 'home'" class="page home-page">
+        <section v-if="page === 'home'" class="page home-page">
           <div class="page-heading">
             <div>
               <h1>Подключение</h1>
@@ -946,7 +953,7 @@ const fields: Record<
                   <span class="eyebrow">{{
                     nowConnected ? "Текущий сервер" : "Выбранный сервер"
                   }}</span>
-                  <span v-if="shownProfile" class="selected-latency" :title="`Среднее время ответа · ${snapshot.settings.ping_type ?? 'proxy'} · 5 запросов`">
+                  <span v-if="shownProfile" class="selected-latency" :title="`Среднее время ответа · ${snapshot.settings.ping_type ?? 'icmp'} · 5 запросов`">
                     <Zap :size="13" />
                     {{ shownProfile.latency_ms === null ? "n/a" : `${shownProfile.latency_ms} мс` }}
                   </span>
@@ -1045,7 +1052,7 @@ const fields: Record<
               <div class="subscription-tools">
                 <button
                   class="icon-button circle"
-                  :title="`Пинг этой подписки · ${snapshot.settings.ping_type ?? 'proxy'} · 5 запросов вне активного VPN`"
+                  :title="`Пинг этой подписки · ${snapshot.settings.ping_type ?? 'icmp'} · 5 запросов вне активного VPN`"
                   aria-label="Пинг этой подписки"
                   :disabled="working || !profiles.length || status.network_busy"
                   @click="
@@ -1103,6 +1110,7 @@ const fields: Record<
               >
                 <ServerCard
                   v-for="profile in profiles"
+                  v-memo="[profile, profile.id === snapshot.selected_profile, working]"
                   :key="profile.id"
                   :profile="profile"
                   :selected="profile.id === snapshot.selected_profile"
@@ -1130,7 +1138,7 @@ const fields: Record<
           </section>
         </section>
 
-        <section v-show="page === 'bypass'" class="page">
+        <section v-if="page === 'bypass'" class="page">
           <div class="page-heading">
             <div>
               <h1>В обход VPN</h1>
@@ -1217,7 +1225,7 @@ const fields: Record<
           </p>
         </section>
 
-        <section v-show="page === 'logs'" class="page">
+        <section v-if="page === 'logs'" class="page">
           <div class="page-heading">
             <div>
               <h1>Журнал событий</h1>
@@ -1272,7 +1280,7 @@ const fields: Record<
           </p>
         </section>
 
-        <section v-show="page === 'settings'" class="page">
+        <section v-if="page === 'settings'" class="page">
           <div class="page-heading">
             <div>
               <h1>Настройки</h1>

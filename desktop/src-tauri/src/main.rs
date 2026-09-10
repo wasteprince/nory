@@ -107,6 +107,7 @@ fn show(app: &tauri::AppHandle) {
         let _ = w.show();
         let _ = w.unminimize();
         let _ = w.set_focus();
+        let _ = w.emit("window-visibility", true);
     }
 }
 
@@ -284,6 +285,9 @@ fn main() {
                 let mut connected = false;
                 loop {
                     std::thread::sleep(std::time::Duration::from_secs(1));
+                    if handle.state::<Runtime>().quitting.load(Ordering::Acquire) {
+                        break;
+                    }
                     let now =
                         desktop.core.status().phase == nory::models::ConnectionPhase::Connected;
                     if now != connected {
@@ -322,6 +326,7 @@ fn main() {
                 api.prevent_close();
                 if runtime.desktop.settings().close_to_tray && app.tray_by_id("nory").is_some() {
                     let _ = window.hide();
+                    let _ = window.emit("window-visibility", false);
                 } else {
                     let app = app.clone();
                     let d = runtime.desktop.clone();
