@@ -26,11 +26,11 @@ VPN-клиент для Linux и Windows 11. Два ядра, один инте�
 
 ## Установка
 
-| Система | Пакет 0.3.8 | Как установить |
+| Система | Пакет 0.3.9 | Как установить |
 | --- | --- | --- |
-| Arch Linux x86_64 | [pkg.tar.zst](https://github.com/wasteprince/nory/releases/download/v0.3.8/nory-0.3.8-1-x86_64.pkg.tar.zst) | `sudo pacman -U ./nory-0.3.8-1-x86_64.pkg.tar.zst` |
-| Ubuntu 24.04+ / Debian 13+ amd64 | [deb](https://github.com/wasteprince/nory/releases/download/v0.3.8/nory_0.3.8_amd64.deb) | `sudo apt install ./nory_0.3.8_amd64.deb` |
-| Windows 11 x64 | [Установщик](https://github.com/wasteprince/nory/releases/download/v0.3.8/NORY-0.3.8-windows-x64-setup.exe) | Запустить скачанный `.exe` |
+| Arch Linux x86_64 | [pkg.tar.zst](https://github.com/wasteprince/nory/releases/download/v0.3.9/nory-0.3.9-1-x86_64.pkg.tar.zst) | `sudo pacman -U ./nory-0.3.9-1-x86_64.pkg.tar.zst` |
+| Ubuntu 24.04+ / Debian 13+ amd64 | [deb](https://github.com/wasteprince/nory/releases/download/v0.3.9/nory_0.3.9_amd64.deb) | `sudo apt install ./nory_0.3.9_amd64.deb` |
+| Windows 11 x64 | [Установщик](https://github.com/wasteprince/nory/releases/download/v0.3.9/NORY-0.3.9-windows-x64-setup.exe) | Запустить скачанный `.exe` |
 
 Ядра входят в комплект. Перед ручным обновлением закройте NORY через трей — подписки и настройки сохранятся.
 
@@ -41,7 +41,7 @@ Debian 12, Ubuntu 22.04, Windows 10 и ARM64 этой сборкой не под
 
 ## Для разработчиков и провайдеров
 
-NORY запрашивает подписки с `User-Agent: NORY/<версия>` (например, `NORY/0.3.8`), без подмены на Happ. Описание отдельного сервера читается из `meta.serverDescription` в его JSON-конфигурации.
+NORY запрашивает подписки с `User-Agent: NORY/<версия>` (например, `NORY/0.3.9`), без подмены на Happ. Описание отдельного сервера читается из `meta.serverDescription` в его JSON-конфигурации.
 
 <details>
 <summary>Remnawave → Правила ответов: настройка описаний</summary>
@@ -89,9 +89,9 @@ NORY запрашивает подписки с `User-Agent: NORY/<версия>
 
 ## Исходники
 
-[Сборка и структура проекта](desktop/README.md). В репозитории — код клиента, ресурсы и файлы упаковки. Готовые установщики находятся в [Releases](https://github.com/wasteprince/nory/releases).
+[Сборка и структура проекта](desktop/README.md). В репозитории — код клиента, ресурсы и файлы упаковки. Готовые установщики находятся в [Releases](https://github.com/wasteprince/nory/releases). [Архив исходников 0.3.9](https://github.com/wasteprince/nory/releases/download/v0.3.9/nory-0.3.9-source.tar.gz).
 
-[Изменения в 0.3.8](https://github.com/wasteprince/nory/releases/tag/v0.3.8) включены в пакеты для всех трёх систем.
+[Изменения в 0.3.9](https://github.com/wasteprince/nory/releases/tag/v0.3.9) включены в пакеты для всех трёх систем.
 
 ---
 
