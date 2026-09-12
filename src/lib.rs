@@ -8,6 +8,9 @@ pub mod flag_assets;
 pub mod geodata;
 pub mod latency;
 pub mod mihomo;
+mod routing;
+#[cfg(target_os = "linux")]
+mod traffic;
 pub mod models;
 pub mod network;
 #[cfg(target_os = "linux")]

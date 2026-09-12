@@ -13,6 +13,9 @@ done
 for data in geoip.dat geosite.dat; do
   install -Dm644 "$project/.bundled/arch/xray/$data" "$stage/usr/lib/nory/cores/xray/$data"
 done
+python3 "$project/scripts/tauri/geodata.py" "$stage/usr/lib/nory/cores/xray" "$stage/usr/share/licenses/nory/geodata/provenance.json"
+install -Dm644 "$project/assets/geodata/README.md" "$stage/usr/share/licenses/nory/geodata/README.md"
+install -Dm644 "$project/assets/geodata/GeoSite-LICENSE" "$stage/usr/share/licenses/nory/geodata/GeoSite-LICENSE"
 install -Dm755 "$project/.bundled/arch/sing-box/libcronet.so" "$stage/usr/lib/nory/cores/sing-box/libcronet.so"
 for unit in nory-helper.socket nory-helper.service; do
   install -Dm644 "$project/packaging/$unit" "$stage/usr/lib/systemd/system/$unit"

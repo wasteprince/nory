@@ -89,6 +89,8 @@ struct CoreState {
     api_port: u16,
     generation: u64,
     tun_health: TunHealth,
+    #[cfg(target_os = "linux")]
+    traffic: crate::traffic::Cache,
 }
 
 pub struct CoreManager {
@@ -110,6 +112,8 @@ impl CoreManager {
                 api_port: 10085,
                 generation: 0,
                 tun_health: TunHealth::default(),
+                #[cfg(target_os = "linux")]
+                traffic: crate::traffic::Cache::default(),
             }),
             logs: Arc::new(Mutex::new(VecDeque::with_capacity(MAX_LOG_LINES))),
             log_revision: Arc::new(AtomicU64::new(0)),
@@ -236,6 +240,7 @@ impl CoreManager {
             let _ = privileged::cleanup_tun();
             bail!("запуск VPN был отменён");
         }
+        state.api_port = settings.api_port;
         state.backend = Some(RunningBackend::Mihomo { tun_interface });
         state.status.phase = ConnectionPhase::Connected;
         state.status.started_at = Some(Instant::now());
@@ -267,6 +272,10 @@ impl CoreManager {
             .lock()
             .map_err(|_| anyhow::anyhow!("внутренняя ошибка состояния"))?;
         state.generation = state.generation.wrapping_add(1);
+        #[cfg(target_os = "linux")]
+        {
+            state.traffic = crate::traffic::Cache::default();
+        }
         state.tun_health = TunHealth::default();
         state.status = ConnectionStatus {
             phase: ConnectionPhase::Connecting,
@@ -620,27 +629,58 @@ impl CoreManager {
     }
 
     pub fn traffic(&self) -> Result<(u64, u64)> {
-        let interface = {
-            let state = self
+        #[cfg(target_os = "linux")]
+        {
+            let (backend, port, generation) = {
+                let mut state = self
+                    .state
+                    .lock()
+                    .map_err(|_| anyhow::anyhow!("внутренняя ошибка состояния"))?;
+                let backend = match state.backend.as_ref() {
+                    Some(RunningBackend::Xray {
+                        process: Some(_), ..
+                    }) => crate::traffic::Backend::Xray,
+                    Some(RunningBackend::Mihomo { .. }) => crate::traffic::Backend::Mihomo,
+                    _ => return Ok((0, 0)),
+                };
+                if state
+                    .traffic
+                    .checked_at
+                    .is_some_and(|at| at.elapsed() < Duration::from_secs(1))
+                {
+                    return Ok(state.traffic.totals);
+                }
+                state.traffic.checked_at = Some(Instant::now());
+                (backend, state.api_port, state.generation)
+            };
+            // Do not hold the connection-state lock during I/O. A delayed reply
+            // from an old session must never replace the new session's totals.
+            let totals = crate::traffic::read(backend, port);
+            let mut state = self
                 .state
                 .lock()
                 .map_err(|_| anyhow::anyhow!("внутренняя ошибка состояния"))?;
-            match state.backend.as_ref().context("TUN-ядро не запущено")? {
-                RunningBackend::Xray { tun_interface, .. }
-                | RunningBackend::Mihomo { tun_interface } => tun_interface.clone(),
+            if state.generation != generation {
+                return Ok((0, 0));
             }
-        };
-        #[cfg(target_os = "linux")]
-        {
-            let statistics = std::path::Path::new("/sys/class/net")
-                .join(&interface)
-                .join("statistics");
-            let uplink = read_counter(&statistics.join("tx_bytes"))?;
-            let downlink = read_counter(&statistics.join("rx_bytes"))?;
-            return Ok((uplink, downlink));
+            if let Ok(totals) = totals {
+                state.traffic.totals = totals;
+            }
+            // A transient API failure keeps the last valid sample, not zero.
+            Ok(state.traffic.totals)
         }
         #[cfg(target_os = "windows")]
         {
+            let interface = {
+                let state = self
+                    .state
+                    .lock()
+                    .map_err(|_| anyhow::anyhow!("внутренняя ошибка состояния"))?;
+                match state.backend.as_ref().context("TUN-ядро не запущено")? {
+                    RunningBackend::Xray { tun_interface, .. }
+                    | RunningBackend::Mihomo { tun_interface } => tun_interface.clone(),
+                }
+            };
             crate::windows::traffic(&interface)
         }
     }
@@ -708,15 +748,6 @@ fn copy_asset_if_changed(source: &std::path::Path, target: &std::path::Path) -> 
         fs::rename(&temporary, target)?;
     }
     Ok(())
-}
-
-#[cfg(target_os = "linux")]
-fn read_counter(path: &std::path::Path) -> Result<u64> {
-    std::fs::read_to_string(path)
-        .with_context(|| format!("не удалось прочитать {}", path.display()))?
-        .trim()
-        .parse()
-        .context("некорректный сетевой счётчик")
 }
 
 impl Drop for CoreManager {

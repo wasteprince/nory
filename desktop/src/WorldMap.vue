@@ -4,6 +4,7 @@ import maskUrl from "../../assets/maps/world-land.bin?url";
 const canvas = ref<HTMLCanvasElement>(),
   points: Array<[number, number]> = [];
 let observer: ResizeObserver | undefined;
+let themeObserver: MutationObserver | undefined;
 function draw() {
   const el = canvas.value;
   if (!el) return;
@@ -18,7 +19,7 @@ function draw() {
     mh = mw / 2,
     left = (w - mw) / 2,
     top = (h - mh) / 2;
-  ctx.fillStyle = "rgba(171,174,197,.065)";
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--map-dot").trim() || "rgba(171,174,197,.065)";
   ctx.beginPath();
   for (const [x, y] of points) {
     ctx.moveTo(left + x * mw + 1, top + y * mh);
@@ -40,6 +41,8 @@ onMounted(async () => {
           (Math.floor(i / 240) + 0.5) / 120,
         ]);
     observer = new ResizeObserver(draw);
+    themeObserver = new MutationObserver(draw);
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
     if (canvas.value) observer.observe(canvas.value);
     draw();
   } catch {
@@ -49,6 +52,7 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   disposed = true;
   observer?.disconnect();
+  themeObserver?.disconnect();
 });
 </script>
 <template>

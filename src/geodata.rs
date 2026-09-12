@@ -269,15 +269,20 @@ pub fn prepare(
                 &settings.geoip_url
             };
             let raw_url = profile.raw_config.as_ref().and_then(|raw| {
-                raw.pointer(&format!("/noryGeodata/{kind}"))
-                    .or_else(|| {
-                        raw.get(if kind == "geosite" {
-                            "Geositeurl"
-                        } else {
-                            "Geoipurl"
-                        })
+                std::iter::once(raw)
+                    .chain(crate::mihomo::native_xray_config(raw))
+                    .chain(crate::mihomo::native_mihomo_config(raw))
+                    .find_map(|raw| {
+                        raw.pointer(&format!("/noryGeodata/{kind}"))
+                            .or_else(|| {
+                                raw.get(if kind == "geosite" {
+                                    "Geositeurl"
+                                } else {
+                                    "Geoipurl"
+                                })
+                            })
+                            .and_then(Value::as_str)
                     })
-                    .and_then(Value::as_str)
             });
             let explicit = if configured.trim().is_empty() {
                 raw_url

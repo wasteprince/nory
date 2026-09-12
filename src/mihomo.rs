@@ -70,21 +70,24 @@ pub fn build_mihomo_config(
         return prepare_native_mihomo_config(native, settings, bypass_processes);
     }
 
-    let (proxies, groups, target) = if let Some(raw) = profile.raw_config.as_ref() {
+    let (proxies, groups, target, provider_rules) = if let Some(raw) = profile.raw_config.as_ref() {
         let raw =
             native_xray_config(raw).context("JSON не содержит конфигурацию Xray или Mihomo")?;
         convert_xray_config(raw)?
     } else {
         let name = safe_name(&profile.name, "NORY proxy");
         let value = convert_profile(profile, &name, settings.tls_allow_insecure)?;
-        (vec![value], Vec::new(), name)
+        (vec![value], Vec::new(), name, Vec::new())
     };
     if proxies.is_empty() {
         bail!("конфигурация не содержит протоколов, поддерживаемых Mihomo");
     }
 
     let mut rules = bypass_rules(settings, bypass_processes);
-    rules.push(format!("MATCH,{target}"));
+    rules.extend(provider_rules);
+    if !rules.iter().any(|rule| rule.starts_with("MATCH,")) {
+        rules.push(format!("MATCH,{target}"));
+    }
 
     let nameservers = settings
         .dns_servers
@@ -111,6 +114,7 @@ pub fn build_mihomo_config(
         "geo-auto-update": false,
         "external-controller": format!("127.0.0.1:{}", settings.api_port),
         "profile": { "store-selected": false, "store-fake-ip": false },
+        "sniffer": mihomo_sniffer(settings),
         "dns": {
             "enable": true,
             "ipv6": settings.enable_ipv6,
@@ -214,10 +218,11 @@ fn prepare_native_mihomo_config(
     config.insert("ipv6".into(), json!(settings.enable_ipv6));
     config.insert("allow-lan".into(), json!(false));
     config.insert("find-process-mode".into(), json!("strict"));
-    if settings.routing.bypass_ru {
-        config.insert("geodata-mode".into(), json!(true));
-        config.insert("geo-auto-update".into(), json!(false));
-    }
+    config.insert("geodata-mode".into(), json!(true));
+    config.insert("geo-auto-update".into(), json!(false));
+    config
+        .entry("sniffer")
+        .or_insert_with(|| mihomo_sniffer(settings));
     config.insert(
         "external-controller".into(),
         json!(format!("127.0.0.1:{}", settings.api_port)),
@@ -329,6 +334,20 @@ fn protect_match_targets(config: &mut Map<String, Value>) -> Result<()> {
     Ok(())
 }
 
+fn mihomo_sniffer(settings: &Settings) -> Value {
+    json!({
+        "enable": settings.sniffing,
+        "force-dns-mapping": true,
+        "parse-pure-ip": true,
+        "override-destination": !settings.sniffing_route_only,
+        "sniff": {
+            "HTTP": {"ports": ["1-65535"]},
+            "TLS": {"ports": ["1-65535"]},
+            "QUIC": {"ports": [443, 8443]}
+        }
+    })
+}
+
 fn bypass_rules(settings: &Settings, bypass_processes: &[String]) -> Vec<String> {
     let mut rules = Vec::new();
     let own_processes: &[&str] = if cfg!(target_os = "windows") {
@@ -374,7 +393,7 @@ fn bypass_rules(settings: &Settings, bypass_processes: &[String]) -> Vec<String>
     rules
 }
 
-fn convert_xray_config(raw: &Value) -> Result<(Vec<Value>, Vec<Value>, String)> {
+fn convert_xray_config(raw: &Value) -> Result<(Vec<Value>, Vec<Value>, String, Vec<String>)> {
     let object = raw
         .as_object()
         .context("исходная Xray-конфигурация должна быть объектом")?;
@@ -415,7 +434,7 @@ fn convert_xray_config(raw: &Value) -> Result<(Vec<Value>, Vec<Value>, String)> 
         );
     }
 
-    let source_to_name = converted
+    let mut source_to_name = converted
         .iter()
         .map(|proxy| (proxy.source_tag.clone(), proxy.name.clone()))
         .collect::<HashMap<_, _>>();
@@ -488,27 +507,56 @@ fn convert_xray_config(raw: &Value) -> Result<(Vec<Value>, Vec<Value>, String)> 
         }
     }
 
-    let routed_target = object
-        .get("routing")
-        .and_then(|routing| routing.get("rules"))
+    for outbound in outbounds {
+        if let (Some(tag), Some(protocol)) = (text(outbound, "tag"), text(outbound, "protocol")) {
+            let target = match protocol.as_str() {
+                "freedom" => Some("DIRECT"),
+                "blackhole" => Some("REJECT"),
+                _ => None,
+            };
+            if let Some(target) = target {
+                source_to_name.insert(tag, target.into());
+            }
+        }
+    }
+    let mut targets = source_to_name.clone();
+    targets.extend(balancer_names);
+    // Keep original proxy/group names and detours. Only rule policy names need
+    // comma-free aliases because Mihomo's rule language is not CSV.
+    for rule in raw
+        .pointer("/routing/rules")
         .and_then(Value::as_array)
         .into_iter()
         .flatten()
-        .find_map(|rule| {
-            text(rule, "balancerTag")
-                .and_then(|tag| balancer_names.get(&tag).cloned())
-                .or_else(|| {
-                    text(rule, "outboundTag").and_then(|tag| source_to_name.get(&tag).cloned())
-                })
-        });
-    let target = routed_target
-        .or_else(|| balancer_names.values().next().cloned())
-        .or_else(|| source_to_name.get("proxy").cloned())
+    {
+        let Some(tag) = rule
+            .get("outboundTag")
+            .or_else(|| rule.get("balancerTag"))
+            .and_then(Value::as_str)
+        else {
+            continue;
+        };
+        if let Some(target) = targets.get_mut(tag) {
+            if target.contains(',') || target.trim() != target {
+                let alias = unique_name("NORY-MATCH", &mut used_names);
+                groups.push(json!({"name": alias, "type": "select", "proxies": [target.clone()]}));
+                *target = alias;
+            }
+        }
+    }
+    // Xray's implicit fallback is its first outbound, not the target of the
+    // first conditional routing rule (which can itself be a bypass).
+    let target = outbounds
+        .first()
+        .and_then(|outbound| text(outbound, "tag"))
+        .and_then(|tag| source_to_name.get(&tag).cloned())
         .unwrap_or_else(|| converted[0].name.clone());
+    let rules = super::routing::xray_to_mihomo(raw, &targets)?;
     Ok((
         converted.into_iter().map(|proxy| proxy.value).collect(),
         groups,
         target,
+        rules,
     ))
 }
 
@@ -564,24 +612,38 @@ fn convert_mihomo_config(raw: &Value) -> Result<Value> {
         }
     }
 
-    let target = object
+    let mut rules = super::routing::mihomo_to_xray(raw, &proxy_tags, &balancer_tags)?;
+    if !raw
         .get("rules")
         .and_then(Value::as_array)
-        .into_iter()
-        .flatten()
-        .filter_map(Value::as_str)
-        .filter_map(|rule| rule.strip_prefix("MATCH,"))
-        .map(str::trim)
-        .find(|target| !target.is_empty())
-        .map(ToOwned::to_owned)
-        .or_else(|| balancer_tags.iter().next().cloned())
-        .or_else(|| proxy_tags.iter().next().cloned())
-        .context("не удалось определить целевой proxy Mihomo")?;
-    let final_rule = if balancer_tags.contains(&target) {
-        json!({ "type": "field", "network": "tcp,udp", "balancerTag": target })
-    } else {
-        json!({ "type": "field", "network": "tcp,udp", "outboundTag": target })
-    };
+        .is_some_and(|rules| {
+            rules
+                .iter()
+                .any(|rule| rule.as_str().is_some_and(|r| r.starts_with("MATCH,")))
+        })
+    {
+        let target = balancers
+            .first()
+            .and_then(|b| b["tag"].as_str())
+            .or_else(|| outbounds.first().and_then(|b| b["tag"].as_str()))
+            .context("не удалось определить целевой proxy Mihomo")?;
+        let mut rule = json!({"type":"field", "network":"tcp,udp"});
+        rule[if balancer_tags.contains(target) {
+            "balancerTag"
+        } else {
+            "outboundTag"
+        }] = json!(target);
+        rules.push(rule);
+    }
+    for (tag, protocol) in [
+        ("DIRECT", "freedom"),
+        ("REJECT", "blackhole"),
+        ("REJECT-DROP", "blackhole"),
+    ] {
+        if rules.iter().any(|rule| rule["outboundTag"] == tag) && !proxy_tags.contains(tag) {
+            outbounds.push(json!({"tag": tag, "protocol": protocol, "settings": {}}));
+        }
+    }
 
     let observer = (!balancers.is_empty()).then(|| {
         json!({
@@ -600,7 +662,7 @@ fn convert_mihomo_config(raw: &Value) -> Result<Value> {
         "routing": {
             "domainStrategy": "IPIfNonMatch",
             "balancers": balancers,
-            "rules": [final_rule]
+            "rules": rules
         },
         "remarks": raw.get("name").cloned().unwrap_or_else(|| json!("Mihomo JSON"))
     });

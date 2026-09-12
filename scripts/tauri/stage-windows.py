@@ -52,6 +52,9 @@ def main():
                 elif base.upper().startswith(('LICENSE', 'COPYING')):
                     (licenses / f'{core}-{base}').write_bytes(archive.read(name))
         if not (destination / f'{core}.exe').is_file(): raise RuntimeError(f'Missing {core}')
+    subprocess.run(['python3', str(ROOT / 'scripts/tauri/geodata.py'), str(stage / 'cores/xray'), str(licenses / 'geodata/provenance.json')], check=True)
+    shutil.copy2(ROOT / 'assets/geodata/README.md', licenses / 'geodata/README.md')
+    shutil.copy2(ROOT / 'assets/geodata/GeoSite-LICENSE', licenses / 'geodata/GeoSite-LICENSE')
     with zipfile.ZipFile(artifacts['wintun']) as archive:
         for core in ['sing-box', 'mihomo']:
             (stage / 'cores' / core / 'wintun.dll').write_bytes(archive.read('wintun/bin/amd64/wintun.dll'))

@@ -13,6 +13,8 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
   Power,
+  Sun,
+  Moon,
   ArrowDownLeft,
   ArrowUpRight,
   Globe2,
@@ -58,6 +60,7 @@ import {
 import { bytes, duration, date, cleanName, flag } from "./format";
 import { mergeSettingsDraft } from "./settings";
 import { visibilityPoller } from "./polling";
+import { theme, setTheme, toggleTheme } from "./theme";
 import { isEditing, subscriptionFromPaste } from "./clipboard";
 import type { Settings, Log, CatalogItem } from "./types";
 import Toggle from "./Toggle.vue";
@@ -673,13 +676,13 @@ const fields: Record<
     {
       key: "geosite_url",
       label: "URL GeoSite",
-      description: "HTTPS-ссылка на .dat провайдера. Пусто — встроенная база; torrent загружается отдельно при необходимости.",
+      description: "Для Xray: HTTPS-ссылка на .dat провайдера. Пусто — встроенная база RoscomVPN.",
       type: "text",
     },
     {
       key: "geoip_url",
       label: "URL GeoIP",
-      description: "HTTPS-ссылка на .dat с IP-категориями провайдера. Не меняет сами правила маршрутизации.",
+      description: "Для Xray: HTTPS-ссылка на .dat с IP-категориями. Пусто — встроенная база RoscomVPN.",
       type: "text",
     },
     {
@@ -856,7 +859,6 @@ const fields: Record<
 
 <template>
   <div class="app-shell">
-    <WorldMap />
     <header class="app-header" data-tauri-drag-region>
       <a
         class="brand"
@@ -867,6 +869,11 @@ const fields: Record<
         ><span class="version" v-if="snapshot">{{ snapshot.version }}</span></a
       >
       <div class="window-drag-space" data-tauri-drag-region />
+      <button class="theme-toggle" type="button"
+        :aria-label="theme === 'dark' ? 'Включить светлую тему' : 'Включить тёмную тему'"
+        :title="theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'" @click="toggleTheme">
+        <Sun v-if="theme === 'dark'" :size="17" /><Moon v-else :size="17" />
+      </button>
       <div class="window-controls" aria-label="Управление окном">
         <button
           class="window-control"
@@ -909,6 +916,7 @@ const fields: Record<
         <section v-if="page === 'home'" class="page home-page">
           <div class="page-heading">
             <div>
+              <span class="page-kicker">ВАШЕ ПРОСТРАНСТВО В СЕТИ</span>
               <h1>Подключение</h1>
             </div>
             <div class="core-select">
@@ -927,7 +935,9 @@ const fields: Record<
           </div>
           <div
             class="connection-grid mb-6 grid grid-cols-[180px_minmax(0,1fr)] gap-3 min-[900px]:grid-cols-[212px_minmax(0,1fr)]"
+            :class="{ online: nowConnected }"
           >
+            <WorldMap />
             <section
               class="card connection-card"
               :class="{ online: nowConnected }"
@@ -1310,6 +1320,19 @@ const fields: Record<
               </button>
             </aside>
             <div class="settings-content" v-if="draft">
+              <section v-if="settingsCategory === 'behavior'" class="card appearance-card">
+                <div><span class="page-kicker">ОФОРМЛЕНИЕ</span><h2>В своём свете</h2><p>Выберите тему. Она сохранится автоматически.</p></div>
+                <div class="appearance-options" role="group" aria-label="Цветовая тема">
+                  <button type="button" class="appearance-option light-preview" :class="{ chosen: theme === 'light' }" :aria-pressed="theme === 'light'" @click="setTheme('light')">
+                    <span class="theme-preview" aria-hidden="true"><i /><i /><i /></span>
+                    <span><Sun :size="16" />Светлая<Check v-if="theme === 'light'" :size="15" /></span>
+                  </button>
+                  <button type="button" class="appearance-option dark-preview" :class="{ chosen: theme === 'dark' }" :aria-pressed="theme === 'dark'" @click="setTheme('dark')">
+                    <span class="theme-preview" aria-hidden="true"><i /><i /><i /></span>
+                    <span><Moon :size="16" />Тёмная<Check v-if="theme === 'dark'" :size="15" /></span>
+                  </button>
+                </div>
+              </section>
               <section class="card settings-card">
                 <div
                   v-for="field in fields[settingsCategory]"
@@ -1358,10 +1381,10 @@ const fields: Record<
                   <p>
                     {{
                       snapshot.platform === "windows"
-                        ? "Windows 11 · WebView2"
-                        : "Linux · WebKitGTK"
+                        ? "Для Windows"
+                        : "Для Linux"
                     }}
-                    · Vue + Tauri
+
                   </p>
                 </div>
                 <button

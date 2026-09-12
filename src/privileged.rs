@@ -499,19 +499,11 @@ fn start_mihomo(runtime: &mut Option<TunRuntime>, config: &Value) -> Result<()> 
     cleanup_system_tun();
     fs::create_dir_all(MIHOMO_HOME).context("не удалось создать рабочий каталог Mihomo")?;
     fs::set_permissions(MIHOMO_HOME, fs::Permissions::from_mode(0o700))?;
-    let uses_ru = config
-        .get("rules")
-        .and_then(Value::as_array)
-        .is_some_and(|rules| {
-            rules
-                .iter()
-                .any(|rule| rule.as_str() == Some("GEOSITE,category-ru,DIRECT"))
-        });
-    if uses_ru {
-        let xray = updater::installed_core(&Paths::system())?
-            .context("в пакете NORY отсутствуют GeoData для обхода России")?;
-        install_mihomo_geodata(&xray.directory, Path::new(MIHOMO_HOME))?;
-    }
+    // Native JSON and nested logical rules can reference any GeoData category.
+    // Always stage the package-owned databases for both GEOSITE and GEOIP.
+    let xray =
+        updater::installed_core(&Paths::system())?.context("в пакете NORY отсутствуют GeoData")?;
+    install_mihomo_geodata(&xray.directory, Path::new(MIHOMO_HOME))?;
     write_root_json(MIHOMO_CONFIG, config).context("не удалось записать конфигурацию Mihomo")?;
     let check = Command::new(&mihomo.binary)
         .args(["-t", "-d", MIHOMO_HOME, "-f", MIHOMO_CONFIG])

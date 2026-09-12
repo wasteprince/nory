@@ -99,9 +99,17 @@ pub fn build_xray_config(profile: &Profile, settings: &Settings) -> Result<Value
             { "tag": "block", "protocol": "blackhole", "settings": {} }
         ],
         // Resolve at the GeoIP rule, before a provider's catch-all can match.
-        "routing": { "domainStrategy": if routing.bypass_ru { "IPOnDemand" } else { settings.domain_strategy.as_xray() }, "rules": rules },
+        "routing": { "domainStrategy": if !geoip.is_empty() { "IPOnDemand" } else { settings.domain_strategy.as_xray() }, "rules": rules },
         "remarks": { "noryInbound": "proxy-in" }
     });
+    #[cfg(target_os = "linux")]
+    {
+        // HTTP core totals cover both TUN packets and nftables auto_redirect.
+        // Reuse NORY's loopback API port; Windows keeps its existing gRPC API.
+        config.as_object_mut().expect("config object").remove("api");
+        config["metrics"] =
+            json!({"tag":"api", "listen":format!("127.0.0.1:{}",settings.api_port)});
+    }
     let dns_servers = settings
         .dns_servers
         .split(|character: char| character == ',' || character == ';' || character.is_whitespace())
@@ -257,7 +265,20 @@ fn build_happ_xray_config(profile: &Profile, settings: &Settings, raw: &Value) -
             );
         }
         routing.insert("rules".into(), Value::Array(rules));
-        if settings.routing.bypass_ru {
+        // IPIfNonMatch never resolves domain requests when a later catch-all
+        // matches. Resolve at the IP rule so provider GeoIP bypasses can run.
+        let has_ip = routing["rules"].as_array().is_some_and(|rules| {
+            rules.iter().any(|rule| {
+                rule.get("ip")
+                    .and_then(Value::as_array)
+                    .is_some_and(|ips| !ips.is_empty())
+            })
+        });
+        if has_ip
+            && (settings.routing.bypass_ru
+                || !settings.routing.bypass_geodata.is_empty()
+                || routing.get("domainStrategy").and_then(Value::as_str) != Some("AsIs"))
+        {
             routing.insert("domainStrategy".into(), json!("IPOnDemand"));
         }
         object.insert("routing".into(), Value::Object(routing));
