@@ -1,5 +1,5 @@
 pkgname=nory
-pkgver=0.3.10
+pkgver=0.3.11
 pkgrel=1
 pkgdesc='NORY VPN — Vue, TypeScript and Tauri; Xray and Mihomo TUN'
 arch=('x86_64')

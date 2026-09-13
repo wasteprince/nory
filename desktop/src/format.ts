@@ -1,8 +1,18 @@
+const integerFormat = new Intl.NumberFormat("ru", { maximumFractionDigits: 0 });
+const decimalFormat = new Intl.NumberFormat("ru", { maximumFractionDigits: 1 });
+const dateFormat = new Intl.DateTimeFormat("ru", {
+  day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+});
+const timeFormat = new Intl.DateTimeFormat("ru", {
+  hour: "2-digit", minute: "2-digit", second: "2-digit",
+});
+export const time = (seconds: number): string => timeFormat.format(seconds * 1000);
+
 export function bytes(value: number | null | undefined): string {
   if (!value || value < 0) return "0 Б";
   const units = ["Б", "КБ", "МБ", "ГБ", "ТБ"],
     index = Math.min(4, Math.floor(Math.log(value) / Math.log(1024)));
-  return `${new Intl.NumberFormat("ru", { maximumFractionDigits: index ? 1 : 0 }).format(value / 1024 ** index)} ${units[index]}`;
+  return `${(index ? decimalFormat : integerFormat).format(value / 1024 ** index)} ${units[index]}`;
 }
 export function duration(seconds: number): string {
   return [
@@ -48,11 +58,6 @@ export function flag(name: string): string | null {
 }
 export function date(value: number | null | undefined): string {
   return value
-    ? new Date(value * 1000).toLocaleString("ru", {
-        day: "numeric",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
+    ? dateFormat.format(value * 1000)
     : "Ещё не обновлялась";
 }

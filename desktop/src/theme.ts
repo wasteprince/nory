@@ -16,6 +16,3 @@ export function setTheme(value: Theme) {
   document.documentElement.dataset.theme = value;
   try { localStorage.setItem(key, value); } catch { /* Keep the current selection. */ }
 }
-export function toggleTheme() {
-  setTheme(theme.value === "dark" ? "light" : "dark");
-}

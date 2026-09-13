@@ -75,6 +75,7 @@ pub fn check_for_update() -> Result<Option<AppRelease>> {
 fn fetch_manifest(client: &Client) -> Result<reqwest::blocking::Response> {
     let response = client
         .get(manifest_url())
+        .timeout(Duration::from_secs(15))
         .send()
         .context("сервер обновлений NORY недоступен")?;
     // A Windows preview may coexist with an older Linux-only stable release.
@@ -87,6 +88,7 @@ fn fetch_manifest(client: &Client) -> Result<reqwest::blocking::Response> {
                 "{UPDATE_RELEASES}/download/v{}/windows-manifest.json",
                 env!("CARGO_PKG_VERSION")
             ))
+            .timeout(Duration::from_secs(15))
             .send()
             .context("манифест Windows-сборки недоступен")?
     } else {

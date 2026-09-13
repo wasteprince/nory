@@ -1,7 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
-import { ref } from "vue";
+import { ref, shallowRef } from "vue";
 import type { Snapshot, Status, Notice } from "./types";
-export const snapshot = ref<Snapshot | null>(null);
+// Snapshots arrive as immutable JSON; avoid proxying every server and setting.
+export const snapshot = shallowRef<Snapshot | null>(null);
 export const status = ref<Status>({
   phase: "disconnected",
   error: null,
@@ -32,7 +33,8 @@ export async function refresh() {
   snapshot.value = await request<Snapshot>({ type: "snapshot" });
 }
 export async function poll() {
-  status.value = await request<Status>({ type: "poll" });
+  // Keep property-level dependencies: a traffic tick only updates its readers.
+  Object.assign(status.value, await request<Status>({ type: "poll" }));
 }
 export async function action(
   type: string,

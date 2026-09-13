@@ -1265,7 +1265,7 @@ impl Ui {
         if settings.auto_update_subscriptions {
             self.update_all_subscriptions();
         }
-        if settings.auto_ping {
+        if settings.should_auto_ping() {
             self.test_all_profiles();
         }
         if settings.auto_connect {
@@ -2394,7 +2394,12 @@ impl Ui {
                             self.power.emit_clicked();
                             return;
                         }
-                        if connected && self.data.lock().is_ok_and(|data| data.settings.auto_ping) {
+                        if connected
+                            && self
+                                .data
+                                .lock()
+                                .is_ok_and(|data| data.settings.should_auto_ping())
+                        {
                             self.test_all_profiles();
                         }
                         if connected
@@ -3289,7 +3294,7 @@ fn server_card(profile: &Profile, selected: bool) -> gtk::Button {
     protocol.set_tooltip_text(Some(&metadata));
     let latency_text = profile
         .latency_ms
-        .map_or("n/a".into(), |value| format!("{value} мс"));
+        .map_or(String::new(), |value| format!("{value} мс"));
     let latency = label_x(&latency_text, 1.0);
     latency.add_css_class("server-latency");
     footer.append(&protocol);

@@ -42,12 +42,13 @@ defineEmits<{ select: [] }>();
     </p>
     <div class="flex min-w-0 items-center gap-1.5 mt-auto">
       <ProtocolBadges :profile="profile" /><span
+        v-if="profile.latency_ms != null"
         class="latency"
         :class="{
           'is-fast': profile.latency_ms !== null && profile.latency_ms < 100,
         }"
         >{{
-          profile.latency_ms === null ? "n/a" : `${profile.latency_ms} мс`
+          `${profile.latency_ms} мс`
         }}</span
       >
     </div>

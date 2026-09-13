@@ -35,6 +35,11 @@ fn ui_ready(app: tauri::AppHandle, runtime: tauri::State<'_, Runtime>) {
 }
 
 #[tauri::command]
+fn show_update(app: tauri::AppHandle) {
+    show(&app);
+}
+
+#[tauri::command]
 async fn request(
     action: Action,
     runtime: tauri::State<'_, Runtime>,
@@ -144,6 +149,7 @@ fn main() {
             request,
             install_update,
             ui_ready,
+            show_update,
             developer_channel
         ])
         .setup(move |app| {
@@ -234,7 +240,7 @@ fn main() {
             let events = app.handle().clone();
             let startup = settings.clone();
             std::thread::spawn(move || {
-                if startup.auto_ping {
+                if startup.should_auto_ping() {
                     let _ = background.handle(Action::Ping {
                         subscription_id: background.selected_subscription(),
                     });

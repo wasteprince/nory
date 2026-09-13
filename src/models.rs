@@ -161,6 +161,12 @@ impl Default for Settings {
     }
 }
 
+impl Settings {
+    pub fn should_auto_ping(&self) -> bool {
+        self.auto_ping && !matches!(self.ping_type, PingType::Proxy)
+    }
+}
+
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PingType {

@@ -15,8 +15,6 @@ import {
   Power,
   Sun,
   Moon,
-  ArrowDownLeft,
-  ArrowUpRight,
   Globe2,
   Plus,
   ChevronLeft,
@@ -57,16 +55,18 @@ import {
   poll,
   action,
 } from "./api";
-import { bytes, duration, date, cleanName, flag } from "./format";
+import { bytes, date, time, cleanName, flag } from "./format";
 import { mergeSettingsDraft } from "./settings";
 import { visibilityPoller } from "./polling";
-import { theme, setTheme, toggleTheme } from "./theme";
+import { theme, setTheme } from "./theme";
 import { isEditing, subscriptionFromPaste } from "./clipboard";
 import type { Settings, Log, CatalogItem } from "./types";
 import Toggle from "./Toggle.vue";
 import ServerCard from "./ServerCard.vue";
 import ProtocolBadges from "./ProtocolBadges.vue";
 import WorldMap from "./WorldMap.vue";
+import ConnectionTimer from "./ConnectionTimer.vue";
+import TrafficTotals from "./TrafficTotals.vue";
 import SelectMenu from "./SelectMenu.vue";
 import logo from "../../assets/io.nory.NORY.svg";
 
@@ -107,6 +107,9 @@ const logs = ref<Log[]>([]),
   draft = ref<Settings | null>(null);
 const update = ref<{ version: string; notes: string } | null>(null),
   updateBusy = ref(false),
+  updateChecking = ref(false),
+  updatePending = ref(false),
+  updateError = ref(""),
   updateProgress = ref("");
 const nowConnected = computed(() => status.value.phase === "connected");
 const vpnRequested = computed(
@@ -120,6 +123,8 @@ const working = computed(
     !!busy.value ||
     ["connecting", "disconnecting"].includes(status.value.phase),
 );
+const updateDialogOpen = computed(() => !!update.value && updatePending.value &&
+  !adding.value && !deleting.value && !catalogOpen.value && !subscriptionDialog.value && !working.value);
 const currentSub = computed(() =>
   snapshot.value?.subscriptions.find(
     (s) => s.id === snapshot.value?.selected_subscription,
@@ -177,15 +182,14 @@ const filteredCatalog = computed(() => {
     `${a.name} ${a.matcher}`.toLocaleLowerCase().includes(term),
   );
 });
-const filteredLogs = computed(() =>
-  logs.value.filter(
-    (l) =>
-      (logLevel.value === "all" || l.level === logLevel.value) &&
-      l.message
-        .toLocaleLowerCase()
-        .includes(logQuery.value.toLocaleLowerCase()),
-  ),
-);
+const displayLogs = computed(() => logs.value.map((log) => ({ ...log, time: time(log.at) })));
+const filteredLogs = computed(() => {
+  const query = logQuery.value.toLocaleLowerCase();
+  const level = logLevel.value;
+  return displayLogs.value.filter((log) =>
+    (level === "all" || log.level === level) && log.message.toLocaleLowerCase().includes(query),
+  );
+});
 const phaseLabel = computed(
   () =>
     busy.value === "disconnect" ? "Отключаемся" : ({
@@ -281,6 +285,7 @@ onMounted(async () => {
     document.addEventListener("visibilitychange", updateVisibility);
     updateVisibility();
     uiPoller.start();
+    if (!startupError.value) void checkUpdate(true);
   }
 });
 onBeforeUnmount(() => {
@@ -394,7 +399,7 @@ async function addSubscription() {
 function pasteSubscription(event: ClipboardEvent) {
   // Normal text-field paste must keep working. Clipboard access only happens
   // in a user-initiated paste event; no polling or permissions prompt.
-  if (isEditing(event.target) || adding.value || catalogOpen.value || deleting.value || subscriptionDialog.value) return;
+  if (isEditing(event.target) || adding.value || catalogOpen.value || deleting.value || subscriptionDialog.value || updateDialogOpen.value) return;
   const url = subscriptionFromPaste(event.clipboardData?.getData("text/plain") ?? "");
   if (!url) return;
   event.preventDefault();
@@ -517,28 +522,45 @@ async function clearLogs() {
     notice(String(e), true);
   }
 }
-async function checkUpdate() {
-  updateBusy.value = true;
+async function checkUpdate(automatic = false) {
+  if (updateChecking.value || updateBusy.value) return;
+  updateChecking.value = true;
   try {
     update.value = await request({ type: "check_update" });
-    if (!update.value) notice("Установлена актуальная версия");
+    updatePending.value = !!update.value;
+    if (!update.value && !automatic) notice("Установлена актуальная версия");
   } catch (e) {
-    notice(String(e), true);
+    if (!automatic) notice(String(e), true);
   } finally {
-    updateBusy.value = false;
+    updateChecking.value = false;
   }
 }
+function dismissUpdate() {
+  if (!updateBusy.value) updatePending.value = false;
+}
 async function installUpdate() {
+  if (updateBusy.value || !update.value) return;
+  updatePending.value = true;
   updateBusy.value = true;
+  updateError.value = "";
   updateProgress.value = "Загрузка…";
   try {
     await invoke("install_update");
   } catch (e) {
-    notice(String(e), true);
+    updateError.value = String(e);
   } finally {
     updateBusy.value = false;
   }
 }
+watch(updateDialogOpen, async (shown) => {
+  if (!shown || !isTauri()) return;
+  await nextTick();
+  try {
+    await invoke("show_update");
+    nativeVisible = true;
+    updateVisibility();
+  } catch { /* The dialog remains available when the user opens the window. */ }
+});
 function setField(key: string, value: unknown) {
   if (draft.value) draft.value[key] = value;
 }
@@ -551,6 +573,11 @@ function modalKey(event: KeyboardEvent) {
   const modal = document.querySelector<HTMLElement>(".modal");
   if (!modal) return;
   if (event.key === "Escape" && !busy.value) {
+    if (updateDialogOpen.value) {
+      dismissUpdate();
+      event.preventDefault();
+      return;
+    }
     adding.value = false;
     deleting.value = false;
     catalogOpen.value = false;
@@ -575,20 +602,20 @@ function modalKey(event: KeyboardEvent) {
   }
 }
 watch(
-  () => adding.value || deleting.value || catalogOpen.value || !!subscriptionDialog.value,
-  async (shown) => {
-    if (shown) restoreFocus = document.activeElement as HTMLElement;
+  () => adding.value ? "add" : deleting.value ? "delete" : catalogOpen.value ? "catalog"
+    : subscriptionDialog.value ? "subscription" : updateDialogOpen.value ? "update" : null,
+  async (dialog, previous) => {
+    const shown = !!dialog;
+    if (shown && !previous) restoreFocus = document.activeElement as HTMLElement;
     await nextTick();
     document
       .querySelectorAll<HTMLElement>(".app-header, main, .bottom-nav")
       .forEach((el) => (el.inert = shown));
     if (shown) {
       document.addEventListener("keydown", modalKey);
-      document
-        .querySelector<HTMLElement>(
-          ".modal [autofocus], .modal input, .modal button",
-        )
-        ?.focus();
+      const focusTarget = document.querySelector<HTMLElement>(".modal [autofocus]")
+        ?? document.querySelector<HTMLElement>(".modal input, .modal button");
+      focusTarget?.focus();
     } else {
       document.removeEventListener("keydown", modalKey);
       restoreFocus?.focus();
@@ -746,7 +773,7 @@ const fields: Record<
     {
       key: "auto_ping",
       label: "Пинг при запуске",
-      description: "Проверять активную подписку",
+      description: "Проверять активную подписку. В режиме «Прокси · HTTPS» автоматический пинг отключён; ручная проверка доступна.",
       type: "bool",
     },
     {
@@ -869,11 +896,6 @@ const fields: Record<
         ><span class="version" v-if="snapshot">{{ snapshot.version }}</span></a
       >
       <div class="window-drag-space" data-tauri-drag-region />
-      <button class="theme-toggle" type="button"
-        :aria-label="theme === 'dark' ? 'Включить светлую тему' : 'Включить тёмную тему'"
-        :title="theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'" @click="toggleTheme">
-        <Sun v-if="theme === 'dark'" :size="17" /><Moon v-else :size="17" />
-      </button>
       <div class="window-controls" aria-label="Управление окном">
         <button
           class="window-control"
@@ -955,7 +977,7 @@ const fields: Record<
                   :stroke-width="1.6"
                 /></button
               ><strong>{{ phaseLabel }}</strong
-              ><span class="timer">{{ duration(status.seconds) }}</span>
+              ><ConnectionTimer />
             </section>
             <div class="connection-detail">
               <section class="card selected-card">
@@ -963,9 +985,9 @@ const fields: Record<
                   <span class="eyebrow">{{
                     nowConnected ? "Текущий сервер" : "Выбранный сервер"
                   }}</span>
-                  <span v-if="shownProfile" class="selected-latency" :title="`Среднее время ответа · ${snapshot.settings.ping_type ?? 'icmp'} · 5 запросов`">
+                  <span v-if="shownProfile?.latency_ms != null" class="selected-latency" :title="`Среднее время ответа · ${snapshot.settings.ping_type ?? 'icmp'} · 5 запросов`">
                     <Zap :size="13" />
-                    {{ shownProfile.latency_ms === null ? "n/a" : `${shownProfile.latency_ms} мс` }}
+                    {{ shownProfile.latency_ms }} мс
                   </span>
                 </div>
                 <div class="selected-title">
@@ -1000,16 +1022,7 @@ const fields: Record<
                   <ProtocolBadges :profile="shownProfile" />
                 </div>
               </section>
-              <div class="traffic-grid card">
-                <section class="traffic-card">
-                  <span><ArrowDownLeft :size="16" />Получено</span
-                  ><strong>{{ bytes(status.download) }}</strong>
-                </section>
-                <section class="traffic-card">
-                  <span><ArrowUpRight :size="16" />Отправлено</span
-                  ><strong>{{ bytes(status.upload) }}</strong>
-                </section>
-              </div>
+              <TrafficTotals />
             </div>
           </div>
           <section class="subscription-area">
@@ -1279,7 +1292,7 @@ const fields: Record<
               class="log-line"
               :class="log.level"
             >
-              <time>{{ new Date(log.at * 1000).toLocaleTimeString("ru") }}</time
+              <time>{{ log.time }}</time
               ><span class="log-level">{{ log.level }}</span>
               <p>{{ log.message }}</p>
             </div>
@@ -1389,12 +1402,12 @@ const fields: Record<
                 </div>
                 <button
                   class="button ml-auto"
-                  :disabled="updateBusy"
-                  @click="checkUpdate"
+                  :disabled="updateBusy || updateChecking"
+                  @click="checkUpdate()"
                 >
                   <RefreshCw
                     :size="15"
-                    :class="{ spin: updateBusy }"
+                    :class="{ spin: updateChecking }"
                   />Проверить обновления
                 </button>
               </section>
@@ -1468,6 +1481,32 @@ const fields: Record<
           <X :size="16" />
         </button>
       </div>
+    </div>
+
+    <div v-if="updateDialogOpen && update" class="modal-backdrop"
+      @click="backdrop($event, dismissUpdate)">
+      <section class="modal update-modal" role="dialog" aria-modal="true"
+        aria-labelledby="update-title" aria-describedby="update-description">
+        <div class="modal-heading">
+          <div>
+            <p class="eyebrow">Новая версия NORY</p>
+            <h2 id="update-title">Доступно обновление {{ update.version }}</h2>
+          </div>
+          <button class="icon-button" aria-label="Закрыть обновление" :disabled="updateBusy" @click="dismissUpdate">
+            <X :size="19" />
+          </button>
+        </div>
+        <p id="update-description" class="muted">{{ update.notes || "Доступна новая версия приложения." }}</p>
+        <p v-if="updateError" class="update-error" role="alert">{{ updateError }}</p>
+        <p v-if="updateBusy" class="muted mt-4" role="status" aria-live="polite">{{ updateProgress }}</p>
+        <div class="flex flex-wrap justify-end gap-3 mt-6">
+          <button class="button" :disabled="updateBusy" @click="dismissUpdate">Позже</button>
+          <button class="button primary" autofocus :disabled="updateBusy" @click="installUpdate">
+            <LoaderCircle v-if="updateBusy" :size="17" class="spin" /><Download v-else :size="17" />
+            {{ updateBusy ? "Установка…" : updateError ? "Повторить установку" : "Скачать и установить" }}
+          </button>
+        </div>
+      </section>
     </div>
 
     <div
