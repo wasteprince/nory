@@ -4,9 +4,9 @@
 
 ## macOS
 
-Требуется macOS 26 или новее и Apple Silicon (arm64). Для MacBook Neo используется тот же пакет.
+Требуется macOS 26 или новее. Выберите пакет по процессору: Apple Silicon (arm64, включая MacBook Neo) или Intel (x86_64).
 
-1. Скачайте `NORY-0.4.1-macos-arm64.pkg` из [релиза](https://github.com/wasteprince/nory/releases/tag/v0.4.1).
+1. Скачайте [PKG для Apple Silicon](https://github.com/wasteprince/nory/releases/download/v0.4.1/NORY-0.4.1-macos-arm64.pkg) или [PKG для Intel](https://github.com/wasteprince/nory/releases/download/v0.4.6/NORY-0.4.6-macos-x86_64.pkg).
 2. Запустите установщик, затем откройте NORY из «Программ».
 3. Добавьте подписку, выберите сервер и подключитесь.
 
