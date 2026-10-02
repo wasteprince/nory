@@ -1,46 +1,56 @@
 <div align="center">
 
+<img src="assets/nory.png" width="72" height="72" alt="Логотип NORY">
+
 # NORY
 
 Нативный VPN-клиент для macOS, Windows и Linux.
 
-**Один интерфейс по смыслу. Системные элементы на каждой платформе.**
+**[Скачать](#скачать)** · [Установка](INSTALL.md) · [Изменения](CHANGELOG.md) · [Сообщить об ошибке](https://github.com/wasteprince/nory/issues)
 
-[Скачать NORY 0.4.0](https://github.com/wasteprince/nory/releases/tag/v0.4.0) · [Установка](INSTALL.md) · [Что нового](CHANGELOG.md)
+<br>
 
-<a href="previews/macos.png"><img src="previews/macos.png" width="440" alt="NORY для macOS — тёмный нативный интерфейс, серверы и плавающая навигация"></a>
+<a href="previews/macos.png"><img src="previews/macos.png" width="420" alt="NORY для macOS: Liquid Glass, список серверов и плавающая навигация"></a>
 
-macOS · SwiftUI и системный Liquid Glass
+<sub>macOS · Liquid Glass · демонстрационные данные</sub>
 
 </div>
 
 ## Скачать
 
-| Платформа | Требования | Загрузка |
-| --- | --- | --- |
-| macOS | macOS 26+, Apple Silicon, включая MacBook Neo | [PKG](https://github.com/wasteprince/nory/releases/download/v0.4.0/NORY-0.4.0-macos-arm64.pkg) · [DMG](https://github.com/wasteprince/nory/releases/download/v0.4.0/NORY-0.4.0-macos-arm64.dmg) · [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.0/NORY-0.4.0-macos-arm64.zip) |
-| Windows | Windows 11, x64 | [Установщик](https://github.com/wasteprince/nory/releases/download/v0.4.0/NORY-0.4.0-windows-x64-setup.exe) · [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.0/NORY-0.4.0-windows-x64.zip) |
-| Ubuntu / Debian | Ubuntu 24.04+ или Debian 13+, amd64 | [DEB](https://github.com/wasteprince/nory/releases/download/v0.4.0/nory_0.4.0_amd64.deb) |
-| Arch Linux | x86_64, актуальные GTK4 и libadwaita | [Пакет Arch](https://github.com/wasteprince/nory/releases/download/v0.4.0/nory-0.4.0-1-x86_64.pkg.tar.zst) |
+**Актуальный релиз — [0.4.0](https://github.com/wasteprince/nory/releases/tag/v0.4.0).**
 
-При переходе с 0.3.x установите новый пакет вручную, предварительно завершив NORY. Подписки и настройки хранятся отдельно от приложения. Для последующих обновлений Windows и Linux используется проверка подписи.
+| Система | Совместимость | Установщик |
+| :--- | :--- | :--- |
+| **macOS** | macOS 26+ · Apple Silicon, включая MacBook Neo | [Скачать PKG](https://github.com/wasteprince/nory/releases/download/v0.4.0/NORY-0.4.0-macos-arm64.pkg) |
+| **Windows** | Windows 11 · x64 | [Скачать EXE](https://github.com/wasteprince/nory/releases/download/v0.4.0/NORY-0.4.0-windows-x64-setup.exe) |
+| **Ubuntu / Debian** | Ubuntu 24.04+ / Debian 13+ · amd64 | [Скачать DEB](https://github.com/wasteprince/nory/releases/download/v0.4.0/nory_0.4.0_amd64.deb) |
+| **Arch Linux** | x86_64 · GTK4 / libadwaita | [Скачать пакет](https://github.com/wasteprince/nory/releases/download/v0.4.0/nory-0.4.0-1-x86_64.pkg.tar.zst) |
 
-Если старая Windows-версия пишет «подпись обновления не прошла проверку», выполните [однократную ручную установку](INSTALL.md#windows): в 0.4.0 изменился ключ обновлений.
+> **Windows: обновлённая сборка от 2 октября.** Исправлены возврат на главный экран, ошибка отрисовки после подключения и подсветка навигации. Скачайте EXE заново и установите поверх: номер версии сохранён, подписки и настройки остаются.
+
+<details>
+<summary>Другие форматы и контрольные суммы</summary>
+
+- macOS: [DMG](https://github.com/wasteprince/nory/releases/download/v0.4.0/NORY-0.4.0-macos-arm64.dmg) · [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.0/NORY-0.4.0-macos-arm64.zip).
+- Windows: [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.0/NORY-0.4.0-windows-x64.zip) для ручного развёртывания. Служба TUN устанавливается через EXE.
+- [SHA-256 всех файлов](https://github.com/wasteprince/nory/releases/download/v0.4.0/SHA256SUMS.txt).
+
+</details>
+
+При переходе с 0.3.x нужна [ручная установка](INSTALL.md#windows). Требования к системе и особенности подписи пакетов — в [инструкции](INSTALL.md).
 
 ## Возможности
 
-- Xray для подключений и sing-box для TUN. Ядро Mihomo полностью убрано из новых сборок.
-- Несколько подписок, их описания и лимиты трафика; полные описания серверов.
-- Вертикальный список или карточки, круглые флаги, поиск и ручная проверка задержки.
-- Исходный Xray JSON каждого сервера используется при подключении вместе с его правилами роутинга, DNS и outbounds.
-- Обход VPN для приложений и адресов, журнал подключений и настройки сети.
-- Тёмное оформление без переключателя темы, системные оконные кнопки и плавающая нижняя навигация.
-- macOS: SwiftUI / AppKit и Liquid Glass. Windows: WinUI 3 и Desktop Acrylic. Linux: GTK4 / libadwaita с матовыми поверхностями.
+- **Подписки:** несколько источников, описания серверов, лимиты трафика и срок действия.
+- **Серверы:** список или карточки, поиск, проверка задержки и круглые флаги.
+- **Маршрутизация:** routing, DNS и outbounds из JSON сервера; обход VPN для приложений и адресов.
+- **Интерфейс:** тёмное оформление, системные кнопки окна, плавающая навигация и журнал подключений.
 
-Прозрачность на macOS и Windows зависит от системных настроек эффектов и доступности. Приложения для Android и iOS пока не выпущены.
+Xray + sing-box TUN. Нативные интерфейсы: SwiftUI на macOS, WinUI 3 на Windows, GTK4 / libadwaita на Linux. Android и iOS пока не выпущены.
 
-Превью macOS использует демонстрационные подписки; задержки и трафик приведены для примера. Нажмите на изображение, чтобы открыть PNG в полном разрешении.
+---
 
-## О репозитории
+[Релизы](https://github.com/wasteprince/nory/releases) · [Установка](INSTALL.md) · [История изменений](CHANGELOG.md) · [Обратная связь](https://github.com/wasteprince/nory/issues)
 
-Здесь публикуются готовые сборки, описание приложения и превью. Исходники NORY в публичный репозиторий не включены. Лицензии используемых компонентов входят в установочные пакеты.
+<sub>Публичный репозиторий содержит установщики, документацию и превью. Исходники не публикуются. Лицензии компонентов входят в пакеты.</sub>
