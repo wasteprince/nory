@@ -18,23 +18,23 @@
 
 ## Скачать
 
-**Актуальный релиз — [0.4.0](https://github.com/wasteprince/nory/releases/tag/v0.4.0).**
+**Актуальный релиз — [0.4.1](https://github.com/wasteprince/nory/releases/tag/v0.4.1).**
 
 | Система | Совместимость | Установщик |
 | :--- | :--- | :--- |
-| **macOS** | macOS 26+ · Apple Silicon, включая MacBook Neo | [Скачать PKG](https://github.com/wasteprince/nory/releases/download/v0.4.0/NORY-0.4.0-macos-arm64.pkg) |
-| **Windows** | Windows 11 · x64 | [Скачать EXE](https://github.com/wasteprince/nory/releases/download/v0.4.0/NORY-0.4.0-windows-x64-setup.exe) |
-| **Ubuntu / Debian** | Ubuntu 24.04+ / Debian 13+ · amd64 | [Скачать DEB](https://github.com/wasteprince/nory/releases/download/v0.4.0/nory_0.4.0_amd64.deb) |
-| **Arch Linux** | x86_64 · GTK4 / libadwaita | [Скачать пакет](https://github.com/wasteprince/nory/releases/download/v0.4.0/nory-0.4.0-1-x86_64.pkg.tar.zst) |
+| **macOS** | macOS 26+ · Apple Silicon, включая MacBook Neo | [Скачать PKG](https://github.com/wasteprince/nory/releases/download/v0.4.1/NORY-0.4.1-macos-arm64.pkg) |
+| **Windows** | Windows 11 · x64 | [Скачать EXE](https://github.com/wasteprince/nory/releases/download/v0.4.1/NORY-0.4.1-windows-x64-setup.exe) |
+| **Ubuntu / Debian** | Ubuntu 24.04+ / Debian 13+ · amd64 | [Скачать DEB](https://github.com/wasteprince/nory/releases/download/v0.4.1/nory_0.4.1_amd64.deb) |
+| **Arch Linux** | x86_64 · GTK4 / libadwaita | [Скачать пакет](https://github.com/wasteprince/nory/releases/download/v0.4.1/nory-0.4.1-1-x86_64.pkg.tar.zst) |
 
-> **Windows: обновлённая сборка от 2 октября.** Исправлены возврат на главный экран, ошибка отрисовки после подключения и подсветка навигации. Скачайте EXE заново и установите поверх: номер версии сохранён, подписки и настройки остаются.
+> **Новое в 0.4.1:** исправлена настройка маршрутов и DNS Windows-подключения; на macOS и Linux исправлена подпись TLS. Перед установкой отключите VPN и завершите NORY. Подписки и настройки сохраняются.
 
 <details>
 <summary>Другие форматы и контрольные суммы</summary>
 
-- macOS: [DMG](https://github.com/wasteprince/nory/releases/download/v0.4.0/NORY-0.4.0-macos-arm64.dmg) · [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.0/NORY-0.4.0-macos-arm64.zip).
-- Windows: [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.0/NORY-0.4.0-windows-x64.zip) для ручного развёртывания. Служба TUN устанавливается через EXE.
-- [SHA-256 всех файлов](https://github.com/wasteprince/nory/releases/download/v0.4.0/SHA256SUMS.txt).
+- macOS: [DMG](https://github.com/wasteprince/nory/releases/download/v0.4.1/NORY-0.4.1-macos-arm64.dmg) · [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.1/NORY-0.4.1-macos-arm64.zip).
+- Windows: [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.1/NORY-0.4.1-windows-x64.zip) для ручного развёртывания. Служба TUN устанавливается через EXE.
+- [SHA-256 всех файлов](https://github.com/wasteprince/nory/releases/download/v0.4.1/SHA256SUMS.txt).
 
 </details>
 
