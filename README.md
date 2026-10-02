@@ -18,23 +18,23 @@
 
 ## Скачать
 
-**Windows — [0.4.2](https://github.com/wasteprince/nory/releases/tag/v0.4.2) · macOS и Linux — [0.4.1](https://github.com/wasteprince/nory/releases/tag/v0.4.1).**
+**Windows — [0.4.3](https://github.com/wasteprince/nory/releases/tag/v0.4.3) · macOS и Linux — [0.4.1](https://github.com/wasteprince/nory/releases/tag/v0.4.1).**
 
 | Система | Совместимость | Установщик |
 | :--- | :--- | :--- |
 | **macOS** | macOS 26+ · Apple Silicon, включая MacBook Neo | [Скачать PKG](https://github.com/wasteprince/nory/releases/download/v0.4.1/NORY-0.4.1-macos-arm64.pkg) |
-| **Windows** | Windows 11 · x64 | [Скачать EXE](https://github.com/wasteprince/nory/releases/download/v0.4.2/NORY-0.4.2-windows-x64-setup.exe) |
+| **Windows** | Windows 11 · x64 | [Скачать EXE](https://github.com/wasteprince/nory/releases/download/v0.4.3/NORY-0.4.3-windows-x64-setup.exe) |
 | **Ubuntu / Debian** | Ubuntu 24.04+ / Debian 13+ · amd64 | [Скачать DEB](https://github.com/wasteprince/nory/releases/download/v0.4.1/nory_0.4.1_amd64.deb) |
 | **Arch Linux** | x86_64 · GTK4 / libadwaita | [Скачать пакет](https://github.com/wasteprince/nory/releases/download/v0.4.1/nory-0.4.1-1-x86_64.pkg.tar.zst) |
 
-> **Windows 0.4.2:** исправлена ошибка «Ядро отклонило конфигурацию» при запуске VPN. Отключите VPN, завершите NORY и установите новый EXE поверх текущей версии. Подписки и настройки сохраняются.
+> **Windows 0.4.3:** исправления DNS, переключения серверов и быстрых нажатий; круглые флаги и новое окно JSON. Отключите VPN, завершите NORY и установите новый EXE поверх текущей версии. Подписки и настройки сохраняются.
 
 <details>
 <summary>Другие форматы и контрольные суммы</summary>
 
 - macOS: [DMG](https://github.com/wasteprince/nory/releases/download/v0.4.1/NORY-0.4.1-macos-arm64.dmg) · [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.1/NORY-0.4.1-macos-arm64.zip).
-- Windows: [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.2/NORY-0.4.2-windows-x64.zip) для ручного развёртывания. Служба TUN устанавливается через EXE.
-- SHA-256: [Windows 0.4.2](https://github.com/wasteprince/nory/releases/download/v0.4.2/SHA256SUMS.txt) · [macOS / Linux 0.4.1](https://github.com/wasteprince/nory/releases/download/v0.4.1/SHA256SUMS.txt).
+- Windows: [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.3/NORY-0.4.3-windows-x64.zip) для ручного развёртывания. Служба TUN устанавливается через EXE.
+- SHA-256: [Windows 0.4.3](https://github.com/wasteprince/nory/releases/download/v0.4.3/SHA256SUMS.txt) · [macOS / Linux 0.4.1](https://github.com/wasteprince/nory/releases/download/v0.4.1/SHA256SUMS.txt).
 
 </details>
 
