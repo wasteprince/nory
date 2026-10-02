@@ -18,15 +18,17 @@
 
 ## Скачать
 
-**Windows и macOS Intel — [0.4.6](https://github.com/wasteprince/nory/releases/tag/v0.4.6) · macOS Apple Silicon и Linux — [0.4.1](https://github.com/wasteprince/nory/releases/tag/v0.4.1).**
+**Windows и macOS Intel — [0.4.6](https://github.com/wasteprince/nory/releases/tag/v0.4.6) · Linux — [0.4.7](https://github.com/wasteprince/nory/releases/tag/v0.4.7) · macOS Apple Silicon — [0.4.1](https://github.com/wasteprince/nory/releases/tag/v0.4.1).**
 
 | Система | Совместимость | Установщик |
 | :--- | :--- | :--- |
 | **macOS** | macOS 26+ · Apple Silicon, включая MacBook Neo | [Скачать PKG](https://github.com/wasteprince/nory/releases/download/v0.4.1/NORY-0.4.1-macos-arm64.pkg) |
 | **macOS Intel** | macOS 26+ · x86_64 | [Скачать PKG](https://github.com/wasteprince/nory/releases/download/v0.4.6/NORY-0.4.6-macos-x86_64.pkg) |
 | **Windows** | Windows 11 · x64 | [Скачать EXE](https://github.com/wasteprince/nory/releases/download/v0.4.6/NORY-0.4.6-windows-x64-setup.exe) |
-| **Ubuntu / Debian** | Ubuntu 24.04+ / Debian 13+ · amd64 | [Скачать DEB](https://github.com/wasteprince/nory/releases/download/v0.4.1/nory_0.4.1_amd64.deb) |
-| **Arch Linux** | x86_64 · GTK4 / libadwaita | [Скачать пакет](https://github.com/wasteprince/nory/releases/download/v0.4.1/nory-0.4.1-1-x86_64.pkg.tar.zst) |
+| **Ubuntu / Debian** | Ubuntu 24.04+ / Debian 13+ · amd64 | [Скачать DEB](https://github.com/wasteprince/nory/releases/download/v0.4.7/nory_0.4.7_amd64.deb) |
+| **Arch Linux** | x86_64 · GTK4 / libadwaita | [Скачать пакет](https://github.com/wasteprince/nory/releases/download/v0.4.7/nory-0.4.7-1-x86_64.pkg.tar.zst) |
+
+> **Linux 0.4.7:** встроенные иконки, обновлённый интерфейс, исправление TUN и одноразовое разрешение VPN. Пакеты для Arch, Ubuntu и Debian.
 
 > **Windows 0.4.6:** исправлена прокрутка колёсиком в режиме карточек; список сохраняет положение при обновлении серверов. Отключите VPN, завершите NORY и установите новый EXE поверх текущей версии. Подписки и настройки сохраняются.
 
@@ -36,7 +38,7 @@
 - macOS: [DMG](https://github.com/wasteprince/nory/releases/download/v0.4.1/NORY-0.4.1-macos-arm64.dmg) · [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.1/NORY-0.4.1-macos-arm64.zip).
 - macOS Intel: [DMG](https://github.com/wasteprince/nory/releases/download/v0.4.6/NORY-0.4.6-macos-x86_64.dmg) · [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.6/NORY-0.4.6-macos-x86_64.zip).
 - Windows: [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.6/NORY-0.4.6-windows-x64.zip) для ручного развёртывания. Служба TUN устанавливается через EXE.
-- SHA-256: [Windows / macOS Intel 0.4.6](https://github.com/wasteprince/nory/releases/download/v0.4.6/SHA256SUMS.txt) · [macOS / Linux 0.4.1](https://github.com/wasteprince/nory/releases/download/v0.4.1/SHA256SUMS.txt).
+- SHA-256: [Windows / macOS Intel 0.4.6](https://github.com/wasteprince/nory/releases/download/v0.4.6/SHA256SUMS.txt) · [Linux 0.4.7](https://github.com/wasteprince/nory/releases/download/v0.4.7/SHA256SUMS.txt) · [macOS Apple Silicon 0.4.1](https://github.com/wasteprince/nory/releases/download/v0.4.1/SHA256SUMS.txt).
 
 </details>
 
