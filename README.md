@@ -18,7 +18,7 @@
 
 ## Скачать
 
-**[NORY 0.4.9](https://github.com/wasteprince/nory/releases/tag/v0.4.9)** · Windows 10/11, macOS и Linux
+**[NORY 0.4.9](https://github.com/wasteprince/nory/releases/tag/v0.4.9)** · Windows 10/11 и macOS
 
 | Система | Совместимость | Установщик |
 | :--- | :--- | :--- |
@@ -26,8 +26,6 @@
 | **macOS Intel** | macOS 26+ · x86_64 | [Скачать PKG](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-macos-x86_64.pkg) |
 | **Windows 11** | Windows 11 · x64 | [Скачать EXE](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-windows-x64-setup.exe) |
 | **Windows 10** | 21H2 / 22H2 / LTSC 2021 · x64 | [Скачать EXE](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-windows10-x64-setup.exe) |
-| **Ubuntu / Debian** | Ubuntu 24.04+ / Debian 13+ · amd64 | [Скачать DEB](https://github.com/wasteprince/nory/releases/download/v0.4.9/nory_0.4.9_amd64.deb) |
-| **Arch Linux** | x86_64 · GTK4 / libadwaita | [Скачать пакет](https://github.com/wasteprince/nory/releases/download/v0.4.9/nory-0.4.9-1-x86_64.pkg.tar.zst) |
 
 > **В 0.4.9:** обход сайтов на всех платформах; исправления выбора приложений, маршрутизации и очистки TUN на Windows.
 
@@ -51,7 +49,7 @@
 - **Маршрутизация:** routing, DNS и outbounds из JSON сервера; обход VPN для приложений, сайтов и поддоменов.
 - **Интерфейс:** тёмное оформление, системные кнопки окна, плавающая навигация и журнал подключений.
 
-Xray + sing-box TUN. Нативные интерфейсы: SwiftUI на macOS, WinUI 3 на Windows, GTK4 / libadwaita на Linux. Android и iOS пока не выпущены.
+Xray + sing-box TUN. Нативные интерфейсы: SwiftUI на macOS, WinUI 3 на Windows, GTK4 / libadwaita на Linux (бета-версия). Android и iOS пока не выпущены.
 
 ---
 
