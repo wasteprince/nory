@@ -18,14 +18,13 @@
 
 ## Скачать
 
-**[NORY 0.4.9](https://github.com/wasteprince/nory/releases/tag/v0.4.9)** · Windows 10/11 и macOS
+**[NORY 0.4.9](https://github.com/wasteprince/nory/releases/tag/v0.4.9)** · Windows 11 и macOS
 
 | Система | Совместимость | Установщик |
 | :--- | :--- | :--- |
 | **macOS** | macOS 26+ · Apple Silicon, включая MacBook Neo | [Скачать PKG](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-macos-arm64.pkg) |
 | **macOS Intel** | macOS 26+ · x86_64 | [Скачать PKG](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-macos-x86_64.pkg) |
 | **Windows 11** | Windows 11 · x64 | [Скачать EXE](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-windows-x64-setup.exe) |
-| **Windows 10** | 21H2 / 22H2 / LTSC 2021 · x64 | [Скачать EXE](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-windows10-x64-setup.exe) |
 
 > **В 0.4.9:** обход сайтов на всех платформах; исправления выбора приложений, маршрутизации и очистки TUN на Windows.
 
@@ -34,7 +33,6 @@
 
 - macOS: [DMG](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-macos-arm64.dmg) · [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-macos-arm64.zip).
 - macOS Intel: [DMG](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-macos-x86_64.dmg) · [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-macos-x86_64.zip).
-- Windows 10: [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-windows10-x64.zip) для ручного развёртывания.
 - Windows 11: [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-windows-x64.zip) для ручного развёртывания. Служба TUN устанавливается через EXE.
 - [Контрольные суммы SHA-256](https://github.com/wasteprince/nory/releases/download/v0.4.9/SHA256SUMS.txt).
 

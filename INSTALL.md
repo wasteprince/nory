@@ -18,12 +18,9 @@ DMG и ZIP содержат то же приложение для ручного
 
 ## Windows
 
-Доступны два отдельных пакета:
+Доступен [установщик для Windows 11 x64](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-windows-x64-setup.exe).
 
-- [Windows 10 x64](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-windows10-x64-setup.exe): 21H2, 22H2 и LTSC 2021, сборка 19044 и новее.
-- [Windows 11 x64](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-windows-x64-setup.exe).
-
-Windows x86, ARM64 и Windows Server не поддерживаются. У Windows 10 свой канал обновлений; клиент не скачивает пакет только для Windows 11. Для Windows 10 используются системная рамка и непрозрачные тёмные панели, а размер окна учитывает масштаб дисплея.
+Windows x86, ARM64 и Windows Server не поддерживаются.
 
 ### Если старая версия сообщает «подпись обновления не прошла проверку»
 
@@ -41,7 +38,7 @@ Windows x86, ARM64 и Windows Server не поддерживаются. У Windo
 
 ### Обычная установка
 
-Запустите EXE для своей версии Windows: `windows10` или `windows`. Установщик разместит приложение в Program Files и подготовит системный компонент TUN. Затем запускайте NORY обычным пользователем. .NET и Windows App SDK входят в комплект; оба Windows-пакета также содержат библиотеки Visual C++; WebView2 больше не требуется.
+Запустите `NORY-0.4.9-windows-x64-setup.exe`. Установщик разместит приложение в Program Files и подготовит системный компонент TUN. Затем запускайте NORY обычным пользователем. .NET и Windows App SDK входят в комплект; библиотеки Visual C++ также включены в пакет; WebView2 больше не требуется.
 
 Установщик не имеет коммерческой Authenticode-подписи. Для обычной установки используйте EXE. ZIP предназначен для ручного развёртывания и сам по себе не устанавливает службу TUN.
 
