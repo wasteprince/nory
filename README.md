@@ -4,7 +4,7 @@
 
 # NORY
 
-Нативный VPN-клиент для macOS, Windows и Linux.
+VPN-клиент для macOS, Windows, Android и Linux.
 
 **[Скачать](#скачать)** · [Установка](INSTALL.md) · [Изменения](CHANGELOG.md) · [Сообщить об ошибке](https://github.com/wasteprince/nory/issues)
 
@@ -18,16 +18,19 @@
 
 ## Скачать
 
-**[NORY 0.4.10](https://github.com/wasteprince/nory/releases/tag/v0.4.10)** · Windows 11 ARM64
+**[NORY 0.4.11](https://github.com/wasteprince/nory/releases/tag/v0.4.11)** · Первый выпуск для Android
 
-Windows 11 x64 и macOS — версия 0.4.9.
+Windows 11 ARM64 — 0.4.10. Windows 11 x64 и macOS — 0.4.9.
 
 | Система | Совместимость | Установщик |
 | :--- | :--- | :--- |
+| **Android** | Android 8.0+ · ARM64, ARMv7, x86‑64 | [Скачать APK](https://github.com/wasteprince/nory/releases/download/v0.4.11/NORY-0.4.11-android.apk) |
 | **macOS** | macOS 26+ · Apple Silicon, включая MacBook Neo | [Скачать PKG](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-macos-arm64.pkg) |
 | **macOS Intel** | macOS 26+ · x86_64 | [Скачать PKG](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-macos-x86_64.pkg) |
 | **Windows 11** | Windows 11 · x64 | [Скачать EXE](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-windows-x64-setup.exe) |
 | **Windows 11 ARM** | Windows 11 · ARM64 | [Скачать EXE](https://github.com/wasteprince/nory/releases/download/v0.4.10/NORY-0.4.10-windows-arm64-setup.exe) |
+
+> **В 0.4.11:** Android на Flutter — графитовое оформление, стеклянные панели, Xray VPN и обход российских сайтов, доменов и приложений.
 
 > **В 0.4.10:** нативная версия для Windows 11 ARM64 с отдельным каналом обновлений.
 
@@ -40,6 +43,7 @@ Windows 11 x64 и macOS — версия 0.4.9.
 - macOS Intel: [DMG](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-macos-x86_64.dmg) · [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-macos-x86_64.zip).
 - Windows 11: [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.9/NORY-0.4.9-windows-x64.zip) для ручного развёртывания. Служба TUN устанавливается через EXE.
 - Windows 11 ARM64: [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.10/NORY-0.4.10-windows-arm64.zip) для ручного развёртывания.
+- Android: [SHA-256](https://github.com/wasteprince/nory/releases/download/v0.4.11/SHA256SUMS-android.txt). Установите APK поверх предыдущей Android-версии для сохранения подписок.
 - Контрольные суммы SHA-256: [0.4.10 · ARM64](https://github.com/wasteprince/nory/releases/download/v0.4.10/SHA256SUMS.txt) · [0.4.9 · остальные сборки](https://github.com/wasteprince/nory/releases/download/v0.4.9/SHA256SUMS.txt).
 
 </details>
@@ -49,11 +53,11 @@ Windows 11 x64 и macOS — версия 0.4.9.
 ## Возможности
 
 - **Подписки:** несколько источников, описания серверов, лимиты трафика и срок действия.
-- **Серверы:** список или карточки, поиск, проверка задержки и круглые флаги.
+- **Серверы:** поиск, круглые флаги и JSON; на компьютерах также карточки и проверка задержки.
 - **Маршрутизация:** routing, DNS и outbounds из JSON сервера; обход VPN для приложений, сайтов и поддоменов.
-- **Интерфейс:** тёмное оформление, системные кнопки окна, плавающая навигация и журнал подключений.
+- **Интерфейс:** тёмное оформление, плавающая навигация и журнал подключений; на компьютерах — системные кнопки окна.
 
-Xray + sing-box TUN. Нативные интерфейсы: SwiftUI на macOS, WinUI 3 на Windows, GTK4 / libadwaita на Linux (бета-версия). Android и iOS пока не выпущены.
+На компьютерах — Xray + sing-box TUN: SwiftUI на macOS, WinUI 3 на Windows, GTK4 / libadwaita на Linux (бета-версия). На Android — Flutter и Xray через системный VpnService, без root. iOS пока не выпущена.
 
 ---
 
