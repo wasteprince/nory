@@ -44,7 +44,7 @@
 
 <div align="center">
 
-**Windows — [NORY 0.4.14](https://github.com/wasteprince/nory/releases/tag/v0.4.14)** · macOS, Android и Linux — [NORY 0.4.13](https://github.com/wasteprince/nory/releases/tag/v0.4.13)
+**Android — [NORY 0.4.15](https://github.com/wasteprince/nory/releases/tag/v0.4.15)** · Windows — [0.4.14](https://github.com/wasteprince/nory/releases/tag/v0.4.14) · macOS и Linux — [0.4.13](https://github.com/wasteprince/nory/releases/tag/v0.4.13)
 
 <br>
 
@@ -54,7 +54,7 @@
 
 [![macOS Apple Silicon](https://img.shields.io/badge/macOS-Apple_Silicon-1d1d1f?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-macos-arm64.pkg)
 [![macOS Intel](https://img.shields.io/badge/macOS-Intel-1d1d1f?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-macos-x86_64.pkg)
-[![Android](https://img.shields.io/badge/Android-APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-android.apk)
+[![Android](https://img.shields.io/badge/Android-APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.15/NORY-0.4.15-android.apk)
 
 [![Ubuntu / Debian](https://img.shields.io/badge/Ubuntu_·_Debian-deb_·_бета-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.13/nory_0.4.13_amd64.deb)
 [![Arch Linux](https://img.shields.io/badge/Arch_Linux-pkg_·_бета-1793D1?style=for-the-badge&logo=archlinux&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.13/nory-0.4.13-1-x86_64.pkg.tar.zst)
@@ -70,7 +70,7 @@
 | **Windows 10** | x64 · 21H2, 22H2, LTSC 2021 (сборка 19044+) | [Установщик EXE](https://github.com/wasteprince/nory/releases/download/v0.4.14/NORY-0.4.14-windows10-x64-setup.exe) |
 | **macOS** | macOS 26+ · Apple Silicon, включая MacBook Neo | [Установщик PKG](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-macos-arm64.pkg) |
 | **macOS Intel** | macOS 26+ · x86_64 | [Установщик PKG](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-macos-x86_64.pkg) |
-| **Android** | Android 8.0+ · ARM64, ARMv7, x86‑64 | [APK](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-android.apk) |
+| **Android** | Android 8.0+ · ARM64, ARMv7, x86‑64 | [APK](https://github.com/wasteprince/nory/releases/download/v0.4.15/NORY-0.4.15-android.apk) |
 | **Ubuntu / Debian** <sup>бета</sup> | Ubuntu 24.04+, Debian 13+ · amd64 | [Пакет DEB](https://github.com/wasteprince/nory/releases/download/v0.4.13/nory_0.4.13_amd64.deb) |
 | **Arch Linux** <sup>бета</sup> | x86_64 | [Пакет pkg.tar.zst](https://github.com/wasteprince/nory/releases/download/v0.4.13/nory-0.4.13-1-x86_64.pkg.tar.zst) |
 
@@ -92,9 +92,11 @@ ZIP для Windows предназначен для ручного развёрт
 </details>
 
 > [!TIP]
-> Windows и Linux обновляются сами: NORY проверяет подписанный манифест при запуске. На macOS и Android установите новую версию поверх старой — подписки и настройки сохранятся.
+> Windows и Linux обновляются сами: NORY проверяет подписанный манифест при запуске. Android с версии 0.4.15 обновляется кнопкой в «Настройках». На macOS установите новую версию поверх старой — подписки и настройки сохранятся.
 
 ## Что нового
+
+**0.4.15 · Android.** VPN больше не включается сам после отключения и не зависает на «Отключение…»; обновление прямо из приложения.
 
 **0.4.14 · Windows.** Исправлена ошибка «Не удалось выбрать свободное имя TUN»: NORY сам удаляет оставшиеся адаптеры при запуске Windows, открытии приложения и после каждого отключения.
 
