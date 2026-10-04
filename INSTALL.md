@@ -38,9 +38,9 @@ DMG и ZIP содержат то же приложение для ручного
 
 Выберите установщик по архитектуре процессора:
 
-- [Windows 11 x64](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-windows-x64-setup.exe) — Intel и AMD.
-- [Windows 11 ARM64](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-windows-arm64-setup.exe) — ARM, включая Snapdragon.
-- [Windows 10 x64](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-windows10-x64-setup.exe) — 21H2, 22H2 и LTSC 2021 (сборка 19044 и новее).
+- [Windows 11 x64](https://github.com/wasteprince/nory/releases/download/v0.4.14/NORY-0.4.14-windows-x64-setup.exe) — Intel и AMD.
+- [Windows 11 ARM64](https://github.com/wasteprince/nory/releases/download/v0.4.14/NORY-0.4.14-windows-arm64-setup.exe) — ARM, включая Snapdragon.
+- [Windows 10 x64](https://github.com/wasteprince/nory/releases/download/v0.4.14/NORY-0.4.14-windows10-x64-setup.exe) — 21H2, 22H2 и LTSC 2021 (сборка 19044 и новее).
 
 Архитектура указана в «Параметры → Система → О системе → Тип системы». ARM64-пакет содержит нативные версии интерфейса, Xray, sing-box, Wintun и системного компонента VPN. Обновления разделены по архитектуре.
 

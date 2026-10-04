@@ -44,13 +44,13 @@
 
 <div align="center">
 
-**NORY 0.4.13** — одна версия для всех платформ · [все файлы релиза](https://github.com/wasteprince/nory/releases/tag/v0.4.13)
+**Windows — [NORY 0.4.14](https://github.com/wasteprince/nory/releases/tag/v0.4.14)** · macOS, Android и Linux — [NORY 0.4.13](https://github.com/wasteprince/nory/releases/tag/v0.4.13)
 
 <br>
 
-[![Windows 11](https://img.shields.io/badge/Windows_11-x64-0078D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-windows-x64-setup.exe)
-[![Windows 11 ARM](https://img.shields.io/badge/Windows_11-ARM64-0078D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-windows-arm64-setup.exe)
-[![Windows 10](https://img.shields.io/badge/Windows_10-x64-0078D4?style=for-the-badge&logo=windows10&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-windows10-x64-setup.exe)
+[![Windows 11](https://img.shields.io/badge/Windows_11-x64-0078D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.14/NORY-0.4.14-windows-x64-setup.exe)
+[![Windows 11 ARM](https://img.shields.io/badge/Windows_11-ARM64-0078D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.14/NORY-0.4.14-windows-arm64-setup.exe)
+[![Windows 10](https://img.shields.io/badge/Windows_10-x64-0078D4?style=for-the-badge&logo=windows10&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.14/NORY-0.4.14-windows10-x64-setup.exe)
 
 [![macOS Apple Silicon](https://img.shields.io/badge/macOS-Apple_Silicon-1d1d1f?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-macos-arm64.pkg)
 [![macOS Intel](https://img.shields.io/badge/macOS-Intel-1d1d1f?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-macos-x86_64.pkg)
@@ -65,9 +65,9 @@
 
 | Система | Требования | Файл |
 | :--- | :--- | :--- |
-| **Windows 11** | x64 (Intel, AMD) · сборка 22000+ | [Установщик EXE](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-windows-x64-setup.exe) |
-| **Windows 11 ARM** | ARM64, включая Snapdragon | [Установщик EXE](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-windows-arm64-setup.exe) |
-| **Windows 10** | x64 · 21H2, 22H2, LTSC 2021 (сборка 19044+) | [Установщик EXE](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-windows10-x64-setup.exe) |
+| **Windows 11** | x64 (Intel, AMD) · сборка 22000+ | [Установщик EXE](https://github.com/wasteprince/nory/releases/download/v0.4.14/NORY-0.4.14-windows-x64-setup.exe) |
+| **Windows 11 ARM** | ARM64, включая Snapdragon | [Установщик EXE](https://github.com/wasteprince/nory/releases/download/v0.4.14/NORY-0.4.14-windows-arm64-setup.exe) |
+| **Windows 10** | x64 · 21H2, 22H2, LTSC 2021 (сборка 19044+) | [Установщик EXE](https://github.com/wasteprince/nory/releases/download/v0.4.14/NORY-0.4.14-windows10-x64-setup.exe) |
 | **macOS** | macOS 26+ · Apple Silicon, включая MacBook Neo | [Установщик PKG](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-macos-arm64.pkg) |
 | **macOS Intel** | macOS 26+ · x86_64 | [Установщик PKG](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-macos-x86_64.pkg) |
 | **Android** | Android 8.0+ · ARM64, ARMv7, x86‑64 | [APK](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-android.apk) |
@@ -82,19 +82,23 @@
 | :--- | :--- |
 | macOS Apple Silicon | [DMG](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-macos-arm64.dmg) · [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-macos-arm64.zip) |
 | macOS Intel | [DMG](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-macos-x86_64.dmg) · [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-macos-x86_64.zip) |
-| Windows 11 x64 | [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-windows-x64.zip) |
-| Windows 11 ARM64 | [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-windows-arm64.zip) |
-| Windows 10 x64 | [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.13/NORY-0.4.13-windows10-x64.zip) |
+| Windows 11 x64 | [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.14/NORY-0.4.14-windows-x64.zip) |
+| Windows 11 ARM64 | [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.14/NORY-0.4.14-windows-arm64.zip) |
+| Windows 10 x64 | [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.14/NORY-0.4.14-windows10-x64.zip) |
 
 ZIP для Windows предназначен для ручного развёртывания и не устанавливает службу TUN — для обычной установки используйте EXE.
-Контрольные суммы всех файлов: [SHA256SUMS.txt](https://github.com/wasteprince/nory/releases/download/v0.4.13/SHA256SUMS.txt).
+Контрольные суммы: [Windows · 0.4.14](https://github.com/wasteprince/nory/releases/download/v0.4.14/SHA256SUMS.txt) · [остальные платформы · 0.4.13](https://github.com/wasteprince/nory/releases/download/v0.4.13/SHA256SUMS.txt).
 
 </details>
 
 > [!TIP]
 > Windows и Linux обновляются сами: NORY проверяет подписанный манифест при запуске. На macOS и Android установите новую версию поверх старой — подписки и настройки сохранятся.
 
-## Что нового в 0.4.13
+## Что нового
+
+**0.4.14 · Windows.** Исправлена ошибка «Не удалось выбрать свободное имя TUN»: NORY сам удаляет оставшиеся адаптеры при запуске Windows, открытии приложения и после каждого отключения.
+
+**0.4.13 · все платформы:**
 
 - **Интернет не пропадает после сбоя.** Если окно NORY аварийно закрылось, системная служба сама снимает туннель и маршруты на Windows и Linux.
 - **Windows 10 выглядит как Windows 11:** прозрачность Acrylic, собственная полоса заголовка и значки Fluent, где система их поддерживает.
