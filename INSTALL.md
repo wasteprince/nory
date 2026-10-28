@@ -4,7 +4,7 @@
 
 ## Android
 
-Требуется Android 8.0 или новее. [Универсальный APK 0.4.13](https://github.com/wasteprince/nory/releases/download/v0.4.16/NORY-0.4.16-android.apk) включает ARM64, ARMv7 и x86‑64.
+Требуется Android 8.0 или новее. [Универсальный APK 0.4.13](https://github.com/wasteprince/nory/releases/download/v0.4.17/NORY-0.4.17-android.apk) включает ARM64, ARMv7 и x86‑64.
 
 1. Скачайте APK и откройте его. Если Android попросит, разрешите установку этому браузеру или файловому менеджеру.
 2. В NORY нажмите «+» и вставьте ссылку на подписку, ключ сервера или полный JSON Xray.
@@ -24,7 +24,7 @@ HWID показан вверху «Настроек» и копируется к
 
 Требуется macOS 26 или новее. Выберите пакет по процессору: Apple Silicon (arm64, включая MacBook Neo) или Intel (x86_64).
 
-1. Скачайте [PKG для Apple Silicon](https://github.com/wasteprince/nory/releases/download/v0.4.16/NORY-0.4.16-macos-arm64.pkg) или [PKG для Intel](https://github.com/wasteprince/nory/releases/download/v0.4.16/NORY-0.4.16-macos-x86_64.pkg).
+1. Скачайте [PKG для Apple Silicon](https://github.com/wasteprince/nory/releases/download/v0.4.17/NORY-0.4.17-macos-arm64.pkg) или [PKG для Intel](https://github.com/wasteprince/nory/releases/download/v0.4.17/NORY-0.4.17-macos-x86_64.pkg).
 2. Запустите установщик, затем откройте NORY из «Программ».
 3. Добавьте подписку, выберите сервер и подключитесь.
 
@@ -38,9 +38,9 @@ DMG и ZIP содержат то же приложение для ручного
 
 Выберите установщик по архитектуре процессора:
 
-- [Windows 11 x64](https://github.com/wasteprince/nory/releases/download/v0.4.16/NORY-0.4.16-windows-x64-setup.exe) — Intel и AMD.
-- [Windows 11 ARM64](https://github.com/wasteprince/nory/releases/download/v0.4.16/NORY-0.4.16-windows-arm64-setup.exe) — ARM, включая Snapdragon.
-- [Windows 10 x64](https://github.com/wasteprince/nory/releases/download/v0.4.16/NORY-0.4.16-windows10-x64-setup.exe) — 21H2, 22H2 и LTSC 2021 (сборка 19044 и новее).
+- [Windows 11 x64](https://github.com/wasteprince/nory/releases/download/v0.4.17/NORY-0.4.17-windows-x64-setup.exe) — Intel и AMD.
+- [Windows 11 ARM64](https://github.com/wasteprince/nory/releases/download/v0.4.17/NORY-0.4.17-windows-arm64-setup.exe) — ARM, включая Snapdragon.
+- [Windows 10 x64](https://github.com/wasteprince/nory/releases/download/v0.4.17/NORY-0.4.17-windows10-x64-setup.exe) — 21H2, 22H2 и LTSC 2021 (сборка 19044 и новее).
 
 Архитектура указана в «Параметры → Система → О системе → Тип системы». ARM64-пакет содержит нативные версии интерфейса, Xray, sing-box, Wintun и системного компонента VPN. Обновления разделены по архитектуре.
 
@@ -70,22 +70,22 @@ Windows x86, Windows 10 ARM и Windows Server не поддерживаются.
 
 ## Ubuntu / Debian · бета
 
-[Пакет DEB 0.4.16](https://github.com/wasteprince/nory/releases/download/v0.4.16/nory_0.4.16_amd64.deb) для Ubuntu 24.04+ или Debian 13+.
+[Пакет DEB 0.4.17](https://github.com/wasteprince/nory/releases/download/v0.4.17/nory_0.4.17_amd64.deb) для Ubuntu 24.04+ или Debian 13+.
 
 Архитектура — amd64.
 
 ```sh
-sudo apt install ./nory_0.4.16_amd64.deb
+sudo apt install ./nory_0.4.17_amd64.deb
 ```
 
 Откройте NORY через меню приложений. GTK4, libadwaita и Python устанавливаются пакетным менеджером. Для TUN используются systemd и polkit. Разрешение VPN запрашивается один раз на пользователя и сохраняется после перезагрузки и обновления NORY. Запускать графический интерфейс от root не нужно.
 
 ## Arch Linux · бета
 
-[Пакет 0.4.16](https://github.com/wasteprince/nory/releases/download/v0.4.16/nory-0.4.16-1-x86_64.pkg.tar.zst)
+[Пакет 0.4.17](https://github.com/wasteprince/nory/releases/download/v0.4.17/nory-0.4.17-1-x86_64.pkg.tar.zst)
 
 ```sh
-sudo pacman -U ./nory-0.4.16-1-x86_64.pkg.tar.zst
+sudo pacman -U ./nory-0.4.17-1-x86_64.pkg.tar.zst
 ```
 
 ## Обход сайтов и приложений
