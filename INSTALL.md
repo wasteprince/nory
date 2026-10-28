@@ -24,7 +24,7 @@ HWID показан вверху «Настроек» и копируется к
 
 Требуется macOS 26 или новее. Выберите пакет по процессору: Apple Silicon (arm64, включая MacBook Neo) или Intel (x86_64).
 
-1. Скачайте [PKG для Apple Silicon](https://github.com/wasteprince/nory/releases/download/v0.4.17/NORY-0.4.17-macos-arm64.pkg) или [PKG для Intel](https://github.com/wasteprince/nory/releases/download/v0.4.17/NORY-0.4.17-macos-x86_64.pkg).
+1. Скачайте [PKG для Apple Silicon](https://github.com/wasteprince/nory/releases/download/v0.4.18/NORY-0.4.18-macos-arm64.pkg) или [PKG для Intel](https://github.com/wasteprince/nory/releases/download/v0.4.18/NORY-0.4.18-macos-x86_64.pkg).
 2. Запустите установщик, затем откройте NORY из «Программ».
 3. Добавьте подписку, выберите сервер и подключитесь.
 
