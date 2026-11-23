@@ -44,20 +44,21 @@
 
 <div align="center">
 
-**[NORY 0.4.21](https://github.com/wasteprince/nory/releases/tag/v0.4.21)** — одна версия для всех платформ
+**[NORY 0.4.24](https://github.com/wasteprince/nory/releases/tag/v0.4.24)** — одна версия для всех платформ
 
 <br>
 
-[![Windows 11](https://img.shields.io/badge/Windows_11-x64-0078D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-windows-x64-setup.exe)
-[![Windows 11 ARM](https://img.shields.io/badge/Windows_11-ARM64-0078D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-windows-arm64-setup.exe)
-[![Windows 10](https://img.shields.io/badge/Windows_10-x64-0078D4?style=for-the-badge&logo=windows10&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-windows10-x64-setup.exe)
+[![Windows 11](https://img.shields.io/badge/Windows_11-x64-0078D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-windows-x64-setup.exe)
+[![Windows 11 ARM](https://img.shields.io/badge/Windows_11-ARM64-0078D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-windows-arm64-setup.exe)
+[![Windows 10](https://img.shields.io/badge/Windows_10-x64-0078D4?style=for-the-badge&logo=windows10&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-windows10-x64-setup.exe)
 
-[![macOS Apple Silicon](https://img.shields.io/badge/macOS-Apple_Silicon-1d1d1f?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-macos-arm64.pkg)
-[![macOS Intel](https://img.shields.io/badge/macOS-Intel-1d1d1f?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-macos-x86_64.pkg)
-[![Android](https://img.shields.io/badge/Android-APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-android.apk)
+[![macOS Apple Silicon](https://img.shields.io/badge/macOS-Apple_Silicon-1d1d1f?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-macos-arm64.pkg)
+[![macOS Intel](https://img.shields.io/badge/macOS-Intel-1d1d1f?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-macos-x86_64.pkg)
+[![Android](https://img.shields.io/badge/Android-APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-android.apk)
 
-[![Ubuntu / Debian](https://img.shields.io/badge/Ubuntu_·_Debian-deb_·_бета-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.21/nory_0.4.21_amd64.deb)
-[![Arch Linux](https://img.shields.io/badge/Arch_Linux-pkg_·_бета-1793D1?style=for-the-badge&logo=archlinux&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.21/nory-0.4.21-1-x86_64.pkg.tar.zst)
+[![Ubuntu / Debian](https://img.shields.io/badge/Ubuntu_·_Debian-deb-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.24/nory_0.4.24_amd64.deb)
+[![Fedora](https://img.shields.io/badge/Fedora-rpm-51A2DA?style=for-the-badge&logo=fedora&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.24/nory-0.4.24-1.x86_64.rpm)
+[![Arch Linux](https://img.shields.io/badge/Arch_Linux-pkg-1793D1?style=for-the-badge&logo=archlinux&logoColor=white)](https://github.com/wasteprince/nory/releases/download/v0.4.24/nory-0.4.24-1-x86_64.pkg.tar.zst)
 
 </div>
 
@@ -65,14 +66,15 @@
 
 | Система | Требования | Файл |
 | :--- | :--- | :--- |
-| **Windows 11** | x64 (Intel, AMD) · сборка 22000+ | [Установщик EXE](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-windows-x64-setup.exe) |
-| **Windows 11 ARM** | ARM64, включая Snapdragon | [Установщик EXE](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-windows-arm64-setup.exe) |
-| **Windows 10** | x64 · 21H2, 22H2, LTSC 2021 (сборка 19044+) | [Установщик EXE](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-windows10-x64-setup.exe) |
-| **macOS** | macOS 26+ · Apple Silicon, включая MacBook Neo | [Установщик PKG](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-macos-arm64.pkg) |
-| **macOS Intel** | macOS 26+ · x86_64 | [Установщик PKG](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-macos-x86_64.pkg) |
-| **Android** | Android 8.0+ · ARM64, ARMv7, x86‑64 | [APK](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-android.apk) |
-| **Ubuntu / Debian** <sup>бета</sup> | Ubuntu 24.04+, Debian 13+ · amd64 | [Пакет DEB](https://github.com/wasteprince/nory/releases/download/v0.4.21/nory_0.4.21_amd64.deb) |
-| **Arch Linux** <sup>бета</sup> | x86_64 | [Пакет pkg.tar.zst](https://github.com/wasteprince/nory/releases/download/v0.4.21/nory-0.4.21-1-x86_64.pkg.tar.zst) |
+| **Windows 11** | x64 (Intel, AMD) · сборка 22000+ | [Установщик EXE](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-windows-x64-setup.exe) |
+| **Windows 11 ARM** | ARM64, включая Snapdragon | [Установщик EXE](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-windows-arm64-setup.exe) |
+| **Windows 10** | x64 · 21H2, 22H2, LTSC 2021 (сборка 19044+) | [Установщик EXE](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-windows10-x64-setup.exe) |
+| **macOS** | macOS 26+ · Apple Silicon, включая MacBook Neo | [Установщик PKG](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-macos-arm64.pkg) |
+| **macOS Intel** | macOS 26+ · x86_64 | [Установщик PKG](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-macos-x86_64.pkg) |
+| **Android** | Android 8.0+ · ARM64, ARMv7, x86‑64 | [APK](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-android.apk) |
+| **Ubuntu / Debian** | Ubuntu 24.04+, Debian 13+ · amd64 | [Пакет DEB](https://github.com/wasteprince/nory/releases/download/v0.4.24/nory_0.4.24_amd64.deb) |
+| **Fedora** | Fedora 40+ · x86_64 | [Пакет RPM](https://github.com/wasteprince/nory/releases/download/v0.4.24/nory-0.4.24-1.x86_64.rpm) |
+| **Arch Linux** | x86_64 | [Пакет pkg.tar.zst](https://github.com/wasteprince/nory/releases/download/v0.4.24/nory-0.4.24-1-x86_64.pkg.tar.zst) |
 
 <details>
 <summary><b>Архивы, образы дисков и контрольные суммы</b></summary>
@@ -80,14 +82,14 @@
 
 | Платформа | Другие форматы |
 | :--- | :--- |
-| macOS Apple Silicon | [DMG](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-macos-arm64.dmg) · [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-macos-arm64.zip) |
-| macOS Intel | [DMG](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-macos-x86_64.dmg) · [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-macos-x86_64.zip) |
-| Windows 11 x64 | [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-windows-x64.zip) |
-| Windows 11 ARM64 | [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-windows-arm64.zip) |
-| Windows 10 x64 | [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-windows10-x64.zip) |
+| macOS Apple Silicon | [DMG](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-macos-arm64.dmg) · [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-macos-arm64.zip) |
+| macOS Intel | [DMG](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-macos-x86_64.dmg) · [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-macos-x86_64.zip) |
+| Windows 11 x64 | [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-windows-x64.zip) |
+| Windows 11 ARM64 | [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-windows-arm64.zip) |
+| Windows 10 x64 | [ZIP](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-windows10-x64.zip) |
 
 ZIP для Windows предназначен для ручного развёртывания и не устанавливает службу TUN — для обычной установки используйте EXE.
-Контрольные суммы всех файлов: [SHA256SUMS.txt](https://github.com/wasteprince/nory/releases/download/v0.4.21/SHA256SUMS.txt).
+Контрольные суммы всех файлов: [SHA256SUMS.txt](https://github.com/wasteprince/nory/releases/download/v0.4.24/SHA256SUMS.txt).
 
 </details>
 
@@ -96,27 +98,13 @@ ZIP для Windows предназначен для ручного развёрт
 
 ## Что нового
 
-**0.4.21 · все платформы.** DNS всегда идёт через VPN-сервер, даже если правила конфига отправляют его мимо туннеля; на macOS системный DNS направляется в туннель. Проверено на настоящем туннеле в Windows, Linux и macOS.
+**0.4.24 · все платформы.** Ошибка автообновления подписки больше не всплывает окном — статус виден рядом с подпиской. Подписка, недоступная напрямую, загружается через VPN. Обновление и проверка задержки — кнопками в шапке подписки, как в Happ. Пакет RPM для Fedora. Xray 26.11.9.
 
-**0.4.19 · Windows, macOS, Linux.** DNS идёт в туннель и подчиняется правилам вашего конфига: системный DNS (в том числе роутер) направляется в VPN, перехваченные запросы разрешает Xray.
+**0.4.23 · Android.** VPN не отключается при повторном открытии приложения, отключение занимает секунду, кнопка «Отключить» в уведомлении работает.
 
-**0.4.18 · macOS.** Исправлена сборка: приложение снова содержит актуальное ядро (раньше в настройках показывалась 0.4.9, а исправления после неё на macOS не действовали).
+**0.4.22 · macOS, Linux.** VPN снова подключается, если сервер в подписке задан доменным именем; NORY предупреждает, если на Mac уже подключён другой VPN.
 
-**0.4.17 · все платформы.** DNS из туннеля проходит через правила любого JSON-конфига; выбранный сервер не сбрасывается при обновлении подписки; Xray 26.10.21 и sing-box 1.14.4.
-
-**0.4.16 · все платформы.** DNS в режиме TUN идёт в DNS-вход вашего JSON-конфига и подчиняется его правилам — как в других клиентах.
-
-**0.4.15 · Android.** VPN больше не включается сам после отключения и не зависает на «Отключение…»; обновление прямо из приложения.
-
-**0.4.14 · Windows.** Исправлена ошибка «Не удалось выбрать свободное имя TUN»: NORY сам удаляет оставшиеся адаптеры при запуске Windows, открытии приложения и после каждого отключения.
-
-**0.4.13 · все платформы:**
-
-- **Интернет не пропадает после сбоя.** Если окно NORY аварийно закрылось, системная служба сама снимает туннель и маршруты на Windows и Linux.
-- **Windows 10 выглядит как Windows 11:** прозрачность Acrylic, собственная полоса заголовка и значки Fluent, где система их поддерживает.
-- **Выход больше не зависает.** Если VPN не удалось отключить, приложение остаётся рабочим и предлагает закрыться всё равно.
-- **Служба Windows перезапускается после сбоя**, а проверка недоступных серверов идёт в несколько раз быстрее.
-- **Android:** надёжнее автоподключение при запуске, журнал не теряет события, плавная прокрутка длинных списков, подтверждение удаления подписки.
+**0.4.21 · все платформы.** DNS всегда идёт через VPN-сервер, даже если правила конфига отправляют его мимо туннеля.
 
 [Полная история изменений →](CHANGELOG.md)
 

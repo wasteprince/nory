@@ -4,7 +4,7 @@
 
 ## Android
 
-Требуется Android 8.0 или новее. [Универсальный APK 0.4.13](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-android.apk) включает ARM64, ARMv7 и x86‑64.
+Требуется Android 8.0 или новее. [Универсальный APK](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-android.apk) включает ARM64, ARMv7 и x86‑64.
 
 1. Скачайте APK и откройте его. Если Android попросит, разрешите установку этому браузеру или файловому менеджеру.
 2. В NORY нажмите «+» и вставьте ссылку на подписку, ключ сервера или полный JSON Xray.
@@ -24,7 +24,7 @@ HWID показан вверху «Настроек» и копируется к
 
 Требуется macOS 26 или новее. Выберите пакет по процессору: Apple Silicon (arm64, включая MacBook Neo) или Intel (x86_64).
 
-1. Скачайте [PKG для Apple Silicon](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-macos-arm64.pkg) или [PKG для Intel](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-macos-x86_64.pkg).
+1. Скачайте [PKG для Apple Silicon](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-macos-arm64.pkg) или [PKG для Intel](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-macos-x86_64.pkg).
 2. Запустите установщик, затем откройте NORY из «Программ».
 3. Добавьте подписку, выберите сервер и подключитесь.
 
@@ -38,9 +38,9 @@ DMG и ZIP содержат то же приложение для ручного
 
 Выберите установщик по архитектуре процессора:
 
-- [Windows 11 x64](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-windows-x64-setup.exe) — Intel и AMD.
-- [Windows 11 ARM64](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-windows-arm64-setup.exe) — ARM, включая Snapdragon.
-- [Windows 10 x64](https://github.com/wasteprince/nory/releases/download/v0.4.21/NORY-0.4.21-windows10-x64-setup.exe) — 21H2, 22H2 и LTSC 2021 (сборка 19044 и новее).
+- [Windows 11 x64](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-windows-x64-setup.exe) — Intel и AMD.
+- [Windows 11 ARM64](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-windows-arm64-setup.exe) — ARM, включая Snapdragon.
+- [Windows 10 x64](https://github.com/wasteprince/nory/releases/download/v0.4.24/NORY-0.4.24-windows10-x64-setup.exe) — 21H2, 22H2 и LTSC 2021 (сборка 19044 и новее).
 
 Архитектура указана в «Параметры → Система → О системе → Тип системы». ARM64-пакет содержит нативные версии интерфейса, Xray, sing-box, Wintun и системного компонента VPN. Обновления разделены по архитектуре.
 
@@ -68,24 +68,34 @@ Windows x86, Windows 10 ARM и Windows Server не поддерживаются.
 
 Установщик не имеет коммерческой Authenticode-подписи. Для обычной установки используйте EXE. ZIP предназначен для ручного развёртывания и сам по себе не устанавливает службу TUN.
 
-## Ubuntu / Debian · бета
+## Ubuntu / Debian
 
-[Пакет DEB 0.4.21](https://github.com/wasteprince/nory/releases/download/v0.4.21/nory_0.4.21_amd64.deb) для Ubuntu 24.04+ или Debian 13+.
+[Пакет DEB 0.4.24](https://github.com/wasteprince/nory/releases/download/v0.4.24/nory_0.4.24_amd64.deb) для Ubuntu 24.04+ или Debian 13+.
 
 Архитектура — amd64.
 
 ```sh
-sudo apt install ./nory_0.4.19_amd64.deb
+sudo apt install ./nory_0.4.24_amd64.deb
 ```
 
 Откройте NORY через меню приложений. GTK4, libadwaita и Python устанавливаются пакетным менеджером. Для TUN используются systemd и polkit. Разрешение VPN запрашивается один раз на пользователя и сохраняется после перезагрузки и обновления NORY. Запускать графический интерфейс от root не нужно.
 
-## Arch Linux · бета
+## Fedora
 
-[Пакет 0.4.21](https://github.com/wasteprince/nory/releases/download/v0.4.21/nory-0.4.21-1-x86_64.pkg.tar.zst)
+[Пакет RPM 0.4.24](https://github.com/wasteprince/nory/releases/download/v0.4.24/nory-0.4.24-1.x86_64.rpm) для Fedora 40 и новее, x86_64.
 
 ```sh
-sudo pacman -U ./nory-0.4.19-1-x86_64.pkg.tar.zst
+sudo dnf install ./nory-0.4.24-1.x86_64.rpm
+```
+
+Зависимости (GTK4, libadwaita, Python, polkit) dnf установит сам. Дальше NORY обновляется автоматически через подписанный канал `rpm`.
+
+## Arch Linux
+
+[Пакет 0.4.24](https://github.com/wasteprince/nory/releases/download/v0.4.24/nory-0.4.24-1-x86_64.pkg.tar.zst)
+
+```sh
+sudo pacman -U ./nory-0.4.24-1-x86_64.pkg.tar.zst
 ```
 
 ## Обход сайтов и приложений
@@ -98,4 +108,4 @@ sudo pacman -U ./nory-0.4.19-1-x86_64.pkg.tar.zst
 
 В релизе опубликован `SHA256SUMS.txt`. Он содержит контрольные суммы установщиков, архивов, превью и манифестов обновлений.
 
-Релиз 0.4.13 собран без запуска реального VPN на устройствах.
+Перед выпуском пакеты DEB, RPM и Arch устанавливаются штатным менеджером пакетов в чистых Ubuntu 24.04 и 25.10, Debian 13, Fedora 41–43 и Arch Linux, где запускаются ядра и интерфейс NORY.
